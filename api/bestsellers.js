@@ -1,15 +1,14 @@
 // /api/bestsellers.js
-import cheerio from "cheerio";
-import axios from "axios";
+const axios = require("axios");
+const cheerio = require("cheerio");
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   const category = req.query.cat || "activation-keys";
 
-  // Map danh mục sang slug URL Plati
   const categoryMap = {
     "activation-keys": "activation-keys",
     "gift-cards": "gift-cards",
@@ -29,7 +28,7 @@ export default async function handler(req, res) {
     const products = [];
 
     $(".product-list .product").each((i, el) => {
-      if (i >= 100) return; // Giới hạn top 100
+      if (i >= 100) return;
 
       const link = $(el).find(".product__title a").attr("href") || "";
       const name = $(el).find(".product__title").text().trim();
@@ -63,4 +62,4 @@ export default async function handler(req, res) {
       details: err.message
     });
   }
-}
+};
