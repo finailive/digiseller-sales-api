@@ -25,24 +25,33 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { data: html } = await axios.get(url);
+    const { data: html } = await axios.get(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36"
+      }
+    });
+
     const $ = cheerio.load(html);
     const products = [];
 
-    $(".products .item").each((i, el) => {
+    $(".product-list .product").each((i, el) => {
       if (i >= 100) return;
 
-      const name = $(el).find(".item-title").text().trim();
-      const link = $(el).find(".item-title a").attr("href") || "";
+      const name = $(el).find(".product__title").text().trim();
+      const link = $(el).find(".product__title a").attr("href") || "";
       const idMatch = link.match(/\/itm\/(\d+)/);
       const id = idMatch ? parseInt(idMatch[1]) : null;
-      const priceText = $(el).find(".cost").text().trim();
+
+      const priceText = $(el).find(".product__price").text().trim();
       const price = priceText.match(/[\d.,]+/)?.[0] || "";
       const currency = priceText.includes("₽") ? "RUB" : "USD";
-      const soldText = $(el).find(".sells").text();
+
+      const soldText = $(el).find(".product__extra").text();
       const sold = parseInt(soldText.replace(/\D/g, "")) || 0;
+
       const image = $(el).find("img").attr("src") || "";
-      const seller = $(el).find(".seller").text().trim();
+      const seller = $(el).find(".product__seller a").text().trim();
 
       if (id) {
         products.push({
