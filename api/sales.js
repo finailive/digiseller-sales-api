@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -31,17 +31,18 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // ✅ Lấy đúng mảng kết quả từ data.result
-    if (!Array.isArray(data.result)) {
-      return res.status(500).json({ error: "Unexpected API response format", raw: data });
+    // ✅ Truy cập đúng vào data.rows
+    if (!Array.isArray(data.rows)) {
+      return res.status(500).json({ error: "API trả về không đúng định dạng", raw: data });
     }
 
-    const simplified = data.result.map(p => ({
-      productId: p.productId,
-      productName: p.productName,
-      price: p.price,
-      quantity: p.quantity,
-      totalAmount: p.totalAmount
+    const simplified = data.rows.map(p => ({
+      productId: p.product_id,
+      productName: p.product_name,
+      price: p.amount_in,
+      paymentMethod: p.method_pay,
+      currency: p.amount_currency,
+      date: p.date_pay
     }));
 
     res.setHeader("Cache-Control", "s-maxage=300");
