@@ -1,16 +1,35 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-const categoryURLs = {
-  "mobile-software": "https://plati.market/cat/mobile-software/125/",
-  "social-networks": "https://plati.market/cat/social-networks/24274/",
-  "pc": "https://plati.market/cat/pc/121/",
-  "game-accounts": "https://plati.market/cat/game-accounts/21940/",
-  "cards": "https://plati.market/cat/cards/82795/",
-  "itunes-app-store": "https://plati.market/cat/itunes-app-store/19830/"
+const categoryPaths = {
+  "mobile-software": "/cat/mobile-software/125/",
+  "social-networks": "/cat/social-networks/24274/",
+  "pc": "/cat/pc/121/",
+  "game-accounts": "/cat/game-accounts/21940/",
+  "cards": "/cat/cards/82795/",
+  "itunes-app-store": "/cat/itunes-app-store/19830/"
 };
 
 const affiliateId = "1393244";
+
+const domains = ["https://plati.market", "https://plati.io"];
+
+async function tryFetchHTML(path) {
+  for (const domain of domains) {
+    try {
+      const { data } = await axios.get(domain + path, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36"
+        }
+      });
+      return { html: data, domain };
+    } catch (err) {
+      continue; // Thử domain kế tiếp nếu lỗi
+    }
+  }
+  return { html: null, domain: null };
+}
 
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
@@ -18,20 +37,17 @@ module.exports = async (req, res) => {
   }
 
   const cat = req.query.cat;
-  const url = categoryURLs[cat];
-
-  if (!url) {
+  const path = categoryPaths[cat];
+  if (!path) {
     return res.status(400).json({ error: "Invalid or missing category" });
   }
 
-  try {
-    const { data: html } = await axios.get(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36"
-      }
-    });
+  const { html, domain } = await tryFetchHTML(path);
+  if (!html) {
+    return res.status(500).json({ error: "Failed to fetch from both domains" });
+  }
 
+  try {
     const $ = cheerio.load(html);
     const products = [];
 
@@ -66,7 +82,7 @@ module.exports = async (req, res) => {
     res.status(200).json(products);
   } catch (err) {
     res.status(500).json({
-      error: "Failed to fetch products",
+      error: "Failed to parse product list",
       details: err.message
     });
   }
