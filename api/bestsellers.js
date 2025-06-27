@@ -35,23 +35,19 @@ module.exports = async (req, res) => {
     const $ = cheerio.load(html);
     const products = [];
 
-    $(".product-list .product").each((i, el) => {
+    $("li.section-list__item > a.card").each((i, el) => {
       if (i >= 100) return;
 
-      const name = $(el).find(".product__title").text().trim();
-      const link = $(el).find(".product__title a").attr("href") || "";
-      const idMatch = link.match(/\/itm\/(\d+)/);
+      const href = $(el).attr("href");
+      const idMatch = href?.match(/\/itm\/(\d+)/);
       const id = idMatch ? parseInt(idMatch[1]) : null;
-
-      const priceText = $(el).find(".product__price").text().trim();
-      const price = priceText.match(/[\d.,]+/)?.[0] || "";
+      const name = $(el).find('[name="title"] span').text().trim();
+      const priceText = $(el).find('[name="price"]').text().replace(/\s/g, "").trim();
       const currency = priceText.includes("₽") ? "RUB" : "USD";
-
-      const soldText = $(el).find(".product__extra").text();
+      const price = priceText.replace(/[^\d.,]/g, "");
+      const soldText = $(el).find('[name="sold"]').text();
       const sold = parseInt(soldText.replace(/\D/g, "")) || 0;
-
       const image = $(el).find("img").attr("src") || "";
-      const seller = $(el).find(".product__seller a").text().trim();
 
       if (id) {
         products.push({
@@ -60,8 +56,7 @@ module.exports = async (req, res) => {
           price,
           currency,
           sold_3m: sold,
-          seller,
-          image: image.startsWith("http") ? image : `https://plati.market${image}`,
+          image: image.startsWith("http") ? image : `https:${image}`,
           description_api: `https://api.digiseller.com/api/products/${id}/data`,
           affiliate_link: `https://www.oplata.info/asp2/pay_wm.asp?id_d=${id}&ai=${affiliateId}`
         });
