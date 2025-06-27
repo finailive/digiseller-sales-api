@@ -1,10 +1,8 @@
 export default async function handler(req, res) {
-  // ✅ Bổ sung CORS Header
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Trả về sớm nếu là preflight (OPTIONS)
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -33,7 +31,12 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    const simplified = data.map(p => ({
+    // ✅ Lấy đúng mảng kết quả từ data.result
+    if (!Array.isArray(data.result)) {
+      return res.status(500).json({ error: "Unexpected API response format", raw: data });
+    }
+
+    const simplified = data.result.map(p => ({
       productId: p.productId,
       productName: p.productName,
       price: p.price,
