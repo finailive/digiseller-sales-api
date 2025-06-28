@@ -89,49 +89,38 @@
       background: #007bff;
       color: white;
     }
-    #cart {
+    #favoritesBtn {
       position: fixed;
-      top: 1rem;
-      right: 1rem;
+      top: 100px;
+      left: 10px;
+      background: #ffc107;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    #favoritesList {
+      position: fixed;
+      top: 150px;
+      left: 10px;
+      width: 250px;
       background: #fff;
       border: 1px solid #ccc;
-      border-radius: 12px;
       padding: 1rem;
-      max-width: 300px;
+      border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 999;
     }
-    #cart h2 {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-    }
-    #cart ul {
+    #favoritesList ul {
       padding-left: 1rem;
+      list-style: disc;
     }
-    #cart ul li {
-      margin-bottom: 0.3rem;
-    }
-    #cart ul li button {
-      margin-left: 0.5rem;
-      background: red;
-      border: none;
-      color: white;
-      padding: 0 6px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #cart a {
-      display: inline-block;
-      margin-top: 0.5rem;
-      background: #28a745;
-      color: white;
-      text-align: center;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      text-decoration: none;
-    }
-    #cart-total {
-      margin-top: 0.5rem;
-      font-weight: bold;
+    #favoritesList li {
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
@@ -150,18 +139,18 @@
   </div>
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
-  <div id="cart">
-    <h2>🛒 Корзина</h2>
-    <ul id="cartItems"></ul>
-    <div id="cart-total"></div>
-    <a id="checkoutBtn" href="#" target="_blank">Перейти к оплате</a>
+
+  <button id="favoritesBtn">❤</button>
+  <div id="favoritesList">
+    <h3>Избранное</h3>
+    <ul id="favoriteItems"></ul>
   </div>
 
   <script>
     let allProducts = [];
     let currentPage = 1;
     const itemsPerPage = 12;
-    let cart = [];
+    let favorites = [];
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
@@ -169,44 +158,24 @@
       renderProducts();
     }
 
-    function addToCart(product) {
-      if (!cart.some(item => item.id === product.id)) {
-        cart.push(product);
-        updateCart();
-      }
-    }
-
-    function removeFromCart(id) {
-      cart = cart.filter(p => p.id !== id);
-      updateCart();
-    }
-
-    function updateCart() {
-      const cartList = document.getElementById('cartItems');
-      const totalDiv = document.getElementById('cart-total');
-      cartList.innerHTML = '';
-      let total = 0;
-
-      cart.forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = `${p.name} - ${p.price} ${p.currency}`;
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '×';
-        removeBtn.onclick = () => removeFromCart(p.id);
-        li.appendChild(removeBtn);
-        cartList.appendChild(li);
-        total += parseFloat(p.price);
-      });
-
-      totalDiv.textContent = `Итого: ${total.toFixed(2)} USD`;
-
-      const checkoutBtn = document.getElementById('checkoutBtn');
-      if (cart.length > 0) {
-        const ids = cart.map(p => p.id).join(',');
-        checkoutBtn.href = `https://oplata.info/asp2/pay_wm_multi.asp?ids=${ids}&ai=1393244`;
+    function toggleFavorite(product) {
+      const exists = favorites.find(p => p.id === product.id);
+      if (!exists) {
+        favorites.push(product);
       } else {
-        checkoutBtn.href = "#";
+        favorites = favorites.filter(p => p.id !== product.id);
       }
+      updateFavorites();
+    }
+
+    function updateFavorites() {
+      const list = document.getElementById('favoriteItems');
+      list.innerHTML = '';
+      favorites.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${p.affiliate_link}" target="_blank">${p.name}</a>`;
+        list.appendChild(li);
+      });
     }
 
     function renderProducts() {
@@ -236,7 +205,7 @@
           <button class="btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'block' ? 'none' : 'block'; this.textContent = desc.style.display === 'block' ? 'Скрыть описание' : 'Показать описание';">Показать описание</button>
           <div class="description">${product.description || 'Нет описания.'}</div>
           <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
-          <button class="btn" onclick='addToCart(${JSON.stringify(product)})'>Добавить в корзину</button>
+          <button class="btn" onclick='toggleFavorite(${JSON.stringify(product)})'>❤ В избранное</button>
         `;
 
         container.appendChild(card);
@@ -286,6 +255,11 @@
     document.getElementById('categoryFilter').addEventListener('change', () => {
       currentPage = 1;
       renderProducts();
+    });
+
+    document.getElementById('favoritesBtn').addEventListener('click', () => {
+      const list = document.getElementById('favoritesList');
+      list.style.display = list.style.display === 'none' ? 'block' : 'none';
     });
 
     loadProducts();
