@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Top Selling Products</title>
+  <title>Топ продаж</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -92,16 +92,16 @@
   </style>
 </head>
 <body>
-  <h1>🔥 Top Selling Products</h1>
+  <h1>🔥 Топ продаж</h1>
   <div class="controls">
-    <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
+    <input type="text" id="searchInput" placeholder="Поиск по названию...">
     <select id="categoryFilter">
-      <option value="">Tất cả danh mục</option>
+      <option value="">Все категории</option>
       <option value="Steam">Steam</option>
       <option value="Windows">Windows</option>
-      <option value="Gift">Gift</option>
-      <option value="Card">Card</option>
-      <option value="Account">Account</option>
+      <option value="Gift">Подарки</option>
+      <option value="Card">Карты</option>
+      <option value="Account">Аккаунты</option>
     </select>
   </div>
   <div class="grid" id="productGrid"></div>
@@ -142,24 +142,47 @@
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <div class="price">${product.price} ${product.currency}</div>
-          <button class="btn" onclick="this.nextElementSibling.style.display='block'">Xem mô tả</button>
-          <div class="description">${product.description || 'Không có mô tả.'}</div>
-          <a href="${product.affiliate_link}" class="btn" target="_blank">Mua ngay</a>
+          <button class="btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'block' ? 'none' : 'block'; this.textContent = desc.style.display === 'block' ? 'Скрыть описание' : 'Показать описание';">Показать описание</button>
+          <div class="description">${product.description || 'Нет описания.'}</div>
+          <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
         `;
 
         container.appendChild(card);
       });
 
       const pageCount = Math.ceil(filtered.length / itemsPerPage);
-      for (let i = 1; i <= pageCount; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        btn.className = (i === currentPage ? 'active' : '');
-        btn.onclick = () => {
-          currentPage = i;
-          renderProducts();
-        };
-        pagination.appendChild(btn);
+
+      if (pageCount > 1) {
+        if (currentPage > 1) {
+          const prevBtn = document.createElement('button');
+          prevBtn.textContent = 'Назад';
+          prevBtn.onclick = () => {
+            currentPage--;
+            renderProducts();
+          };
+          pagination.appendChild(prevBtn);
+        }
+
+        for (let i = 1; i <= pageCount; i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = (i === currentPage ? 'active' : '');
+          btn.onclick = () => {
+            currentPage = i;
+            renderProducts();
+          };
+          pagination.appendChild(btn);
+        }
+
+        if (currentPage < pageCount) {
+          const nextBtn = document.createElement('button');
+          nextBtn.textContent = 'Вперёд';
+          nextBtn.onclick = () => {
+            currentPage++;
+            renderProducts();
+          };
+          pagination.appendChild(nextBtn);
+        }
       }
     }
 
