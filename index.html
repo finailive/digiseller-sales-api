@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Selling Products</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      max-width: 1024px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card img {
+      max-width: 100%;
+      height: 160px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      font-size: 1rem;
+      text-align: center;
+      min-height: 48px;
+    }
+    .price {
+      font-weight: bold;
+      color: #2d2d2d;
+    }
+    .description {
+      display: none;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      text-align: left;
+    }
+    .btn {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 Top Selling Products</h1>
+  <div class="grid" id="productGrid"></div>
+
+  <script>
+    async function loadProducts() {
+      const res = await fetch('/api/bestsellers');
+      const data = await res.json();
+      const container = document.getElementById('productGrid');
+
+      data.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        card.innerHTML = `
+          <img src="${product.image}" alt="${product.name}" />
+          <h3>${product.name}</h3>
+          <div class="price">${product.price} ${product.currency}</div>
+          <button class="btn" onclick="this.nextElementSibling.style.display='block'">Xem mô tả</button>
+          <div class="description">${product.description || 'Không có mô tả.'}</div>
+          <a href="${product.affiliate_link}" class="btn" target="_blank">Mua ngay</a>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
