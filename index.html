@@ -148,7 +148,7 @@
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
 
-  <button id="favoritesBtn">❤</button>
+  <button id="favoritesBtn">❤ <span id="favoriteCount">0</span></button>
   <div id="favoritesList">
     <h3>Избранное</h3>
     <ul id="favoriteItems"></ul>
@@ -178,15 +178,18 @@
 
     function updateFavorites() {
       const list = document.getElementById('favoriteItems');
+      const count = document.getElementById('favoriteCount');
       list.innerHTML = '';
       favorites.forEach(p => {
         const li = document.createElement('li');
         li.innerHTML = `<a href="${p.affiliate_link}" target="_blank">${p.name}</a>`;
         list.appendChild(li);
       });
+      count.textContent = favorites.length;
     }
 
     function renderProducts() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const container = document.getElementById('productGrid');
       const pagination = document.getElementById('pagination');
       const search = document.getElementById('searchInput').value.toLowerCase();
