@@ -89,6 +89,50 @@
       background: #007bff;
       color: white;
     }
+    #cart {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 1rem;
+      max-width: 300px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    #cart h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    #cart ul {
+      padding-left: 1rem;
+    }
+    #cart ul li {
+      margin-bottom: 0.3rem;
+    }
+    #cart ul li button {
+      margin-left: 0.5rem;
+      background: red;
+      border: none;
+      color: white;
+      padding: 0 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #cart a {
+      display: inline-block;
+      margin-top: 0.5rem;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    #cart-total {
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -106,16 +150,63 @@
   </div>
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
+  <div id="cart">
+    <h2>🛒 Корзина</h2>
+    <ul id="cartItems"></ul>
+    <div id="cart-total"></div>
+    <a id="checkoutBtn" href="#" target="_blank">Перейти к оплате</a>
+  </div>
 
   <script>
     let allProducts = [];
     let currentPage = 1;
     const itemsPerPage = 12;
+    let cart = [];
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
       allProducts = await res.json();
       renderProducts();
+    }
+
+    function addToCart(product) {
+      if (!cart.some(item => item.id === product.id)) {
+        cart.push(product);
+        updateCart();
+      }
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(p => p.id !== id);
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartList = document.getElementById('cartItems');
+      const totalDiv = document.getElementById('cart-total');
+      cartList.innerHTML = '';
+      let total = 0;
+
+      cart.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = `${p.name} - ${p.price} ${p.currency}`;
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => removeFromCart(p.id);
+        li.appendChild(removeBtn);
+        cartList.appendChild(li);
+        total += parseFloat(p.price);
+      });
+
+      totalDiv.textContent = `Итого: ${total.toFixed(2)} USD`;
+
+      const checkoutBtn = document.getElementById('checkoutBtn');
+      if (cart.length > 0) {
+        const ids = cart.map(p => p.id).join(',');
+        checkoutBtn.href = `https://oplata.info/asp2/pay_wm_multi.asp?ids=${ids}&ai=1393244`;
+      } else {
+        checkoutBtn.href = "#";
+      }
     }
 
     function renderProducts() {
@@ -145,6 +236,7 @@
           <button class="btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'block' ? 'none' : 'block'; this.textContent = desc.style.display === 'block' ? 'Скрыть описание' : 'Показать описание';">Показать описание</button>
           <div class="description">${product.description || 'Нет описания.'}</div>
           <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
+          <button class="btn" onclick='addToCart(${JSON.stringify(product)})'>Добавить в корзину</button>
         `;
 
         container.appendChild(card);
