@@ -231,20 +231,13 @@
 
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Поиск по названию...">
-    <select id="categoryFilter">
-      <option value="">Все категории</option>
-      <option value="Steam">Steam</option>
-      <option value="Windows">Windows</option>
-      <option value="Gift">Подарки</option>
-      <option value="Card">Карты</option>
-      <option value="Account">Аккаунты</option>
-    </select>
+    <select id="categoryFilter"></select>
     <select class="language-select" id="languageSelect">
       <option value="ru">🌐 Выберите язык</option>
       <option value="ru">Русский</option>
       <option value="en">English</option>
     </select>
-    <button class="favorites-btn" onclick="showFavorites()">Избранное</button>
+    <button class="favorites-btn" onclick="toggleFavorites()">Избранное</button>
     <div class="favorites-list" id="favoritesList"></div>
   </div>
   <div class="grid" id="productGrid"></div>
@@ -262,7 +255,7 @@
       ru: {
         title: "🔥 Топ продаж",
         searchPlaceholder: "Поиск по названию...",
-        categories: ["Все категории", "Steam", "Windows", "Подарки", "Карты", "Аккаунты"],
+        categories: [],
         showDescription: "Показать описание",
         hideDescription: "Скрыть описание",
         buyNow: "Купить сейчас",
@@ -273,7 +266,7 @@
       en: {
         title: "🔥 Top Sales",
         searchPlaceholder: "Search by name...",
-        categories: ["All Categories", "Steam", "Windows", "Gifts", "Cards", "Accounts"],
+        categories: [],
         showDescription: "Show description",
         hideDescription: "Hide description",
         buyNow: "Buy now",
@@ -283,7 +276,6 @@
       }
     };
 
-    // Từ điển dịch cơ bản cho tiêu đề và mô tả (có thể mở rộng)
     const translationDict = {
       ru: {
         "Game": "Игра",
@@ -303,13 +295,12 @@
 
     function translateContent(text, lang) {
       if (!text) return translations[lang].noDescription;
-      // Dịch đơn giản dựa trên từ điển
       for (let key in translationDict[lang]) {
         if (text.includes(key)) {
           return text.replace(new RegExp(key, 'g'), translationDict[lang][key]);
         }
       }
-      return text; // Giữ nguyên nếu không tìm thấy từ cần dịch
+      return text;
     }
 
     let currentLanguage = 'ru';
@@ -321,16 +312,15 @@
       document.querySelector('h1').textContent = t.title;
       document.getElementById('searchInput').placeholder = t.searchPlaceholder;
       const categorySelect = document.getElementById('categoryFilter');
-      categorySelect.innerHTML = '';
-      t.categories.forEach((cat, index) => {
+      categorySelect.innerHTML = '<option value="">Все категории</option>';
+      t.categories.forEach(cat => {
         const option = document.createElement('option');
-        option.value = categorySelect.options[index]?.value || '';
+        option.value = cat.toLowerCase();
         option.textContent = cat;
         categorySelect.appendChild(option);
       });
       document.getElementById('languageSelect').value = lang;
 
-      // Cập nhật các nút và nội dung động
       const buttons = document.querySelectorAll('.btn');
       buttons.forEach(btn => {
         if (btn.textContent === 'Показать описание' || btn.textContent === 'Show description') {
@@ -348,14 +338,29 @@
         }
       });
 
-      // Cập nhật lại danh sách sản phẩm với ngôn ngữ mới
+      allProducts = allProducts.map(product => ({
+        ...product,
+        name: translateContent(product.name, lang),
+        description: translateContent(product.description, lang)
+      }));
       renderProducts();
     }
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
       allProducts = await res.json();
-      // Dịch dữ liệu từ API trước khi lưu
+      // Trích xuất danh mục từ product.name
+      const categories = [...new Set(allProducts.map(product => {
+        if (product.name.includes('Steam')) return 'Steam';
+        if (product.name.includes('Windows')) return 'Windows';
+        if (product.name.includes('Gift')) return 'Подарки';
+        if (product.name.includes('Card')) return 'Карты';
+        if (product.name.includes('Account')) return 'Аккаунты';
+        return 'Другое';
+      }))];
+      translations.ru.categories = ['Все категории', ...categories];
+      translations.en.categories = ['All Categories', ...categories.map(cat => translateContent(cat, 'en'))];
+
       allProducts = allProducts.map(product => ({
         ...product,
         name: translateContent(product.name, currentLanguage),
@@ -454,31 +459,28 @@
       button.querySelector('.favorite-count').textContent = favoriteCounts[productId];
     }
 
-    function showFavorites() {
+    function toggleFavorites() {
       const favoritesList = document.getElementById('favoritesList');
-      favoritesList.innerHTML = '';
-      const favoriteProducts = allProducts.filter(product => favoriteCounts[product.id] > 0);
+      favoritesList.classList.toggle('active');
+      if (favoritesList.classList.contains('active')) {
+        favoritesList.innerHTML = '';
+        const favoriteProducts = allProducts.filter(product => favoriteCounts[product.id] > 0);
 
-      if (favoriteProducts.length > 0) {
-        favoriteProducts.forEach(product => {
-          const item = document.createElement('div');
-          item.innerHTML = `${product.name} (Избранное: ${favoriteCounts[product.id]})`;
-          item.onclick = () => window.open(product.affiliate_link, '_blank');
-          favoritesList.appendChild(item);
-        });
-        favoritesList.classList.add('active');
-        favoritesList.style.right = '1rem';
-        favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
-      } else {
-        favoritesList.innerHTML = translations[currentLanguage].noFavorites;
-        favoritesList.classList.add('active');
+        if (favoriteProducts.length > 0) {
+          favoriteProducts.forEach(product => {
+            const item = document.createElement('div');
+            item.innerHTML = `${product.name} (Избранное: ${favoriteCounts[product.id]})`;
+            item.onclick = () => window.open(product.affiliate_link, '_blank');
+            favoritesList.appendChild(item);
+          });
+        } else {
+          favoritesList.innerHTML = translations[currentLanguage].noFavorites;
+        }
         favoritesList.style.right = '1rem';
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
       }
-
-      setTimeout(() => {
-        document.addEventListener('click', hideFavorites);
-      }, 0);
+      // Loại bỏ sự kiện click ra ngoài khi toggle
+      document.removeEventListener('click', hideFavorites);
     }
 
     function hideFavorites(e) {
@@ -501,7 +503,6 @@
 
     document.getElementById('languageSelect').addEventListener('change', (e) => {
       updateLanguage(e.target.value);
-      // Dịch lại dữ liệu sản phẩm khi thay đổi ngôn ngữ
       allProducts = allProducts.map(product => ({
         ...product,
         name: translateContent(product.name, e.target.value),
