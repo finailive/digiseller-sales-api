@@ -4,12 +4,20 @@ const axios = require("axios");
 
 const affiliateId = "1393244";
 
+// Hàm lọc mô tả, cắt bỏ JSON không mong muốn
+function sanitizeDescription(raw) {
+  if (!raw) return '';
+  const cutoff = raw.indexOf('"image":');
+  let clean = cutoff > 0 ? raw.slice(0, cutoff) : raw;
+  if (clean.length > 1000) clean = clean.slice(0, 1000) + '...';
+  return clean;
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Đọc danh sách product_id từ file id.txt (cùng thư mục gốc)
   const filePath = path.resolve(process.cwd(), "id.txt");
   let idListRaw;
 
@@ -41,7 +49,7 @@ module.exports = async (req, res) => {
             name: data.product.name,
             price: data.product.price,
             currency: data.product.currency || "USD",
-            description: data.product.info || "",
+            description: sanitizeDescription(data.product.info),
             image: data.product.preview_imgs?.[0]?.url || "",
             affiliate_link: `https://www.oplata.info/asp2/pay_wm.asp?id_d=${id}&ai=${affiliateId}`,
           });
