@@ -239,12 +239,12 @@
       <option value="Card">Карты</option>
       <option value="Account">Аккаунты</option>
     </select>
-    <select class="language-select">
-      <option>🌐 Выберите язык</option>
+    <select class="language-select" id="languageSelect">
+      <option value="ru">🌐 Выберите язык</option>
       <option value="ru">Русский</option>
       <option value="en">English</option>
     </select>
-    <button class="favorites-btn" onclick="showFavorites()">Favorites</button>
+    <button class="favorites-btn" onclick="showFavorites()">Избранное</button>
     <div class="favorites-list" id="favoritesList"></div>
   </div>
   <div class="grid" id="productGrid"></div>
@@ -256,6 +256,69 @@
     const itemsPerPage = 12;
     let openDescription = null;
     let favoriteCounts = {};
+
+    // Chuỗi dịch
+    const translations = {
+      ru: {
+        title: "🔥 Топ продаж",
+        searchPlaceholder: "Поиск по названию...",
+        categories: ["Все категории", "Steam", "Windows", "Подарки", "Карты", "Аккаунты"],
+        showDescription: "Показать описание",
+        hideDescription: "Скрыть описание",
+        buyNow: "Купить сейчас",
+        noDescription: "Нет описания.",
+        noFavorites: "Нет избранных продуктов.",
+        forward: "Вперёд"
+      },
+      en: {
+        title: "🔥 Top Sales",
+        searchPlaceholder: "Search by name...",
+        categories: ["All Categories", "Steam", "Windows", "Gifts", "Cards", "Accounts"],
+        showDescription: "Show description",
+        hideDescription: "Hide description",
+        buyNow: "Buy now",
+        noDescription: "No description.",
+        noFavorites: "No favorite products.",
+        forward: "Forward"
+      }
+    };
+
+    let currentLanguage = 'ru';
+
+    function updateLanguage(lang) {
+      currentLanguage = lang;
+      const t = translations[lang];
+
+      document.querySelector('h1').textContent = t.title;
+      document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+      const categorySelect = document.getElementById('categoryFilter');
+      categorySelect.innerHTML = '';
+      t.categories.forEach((cat, index) => {
+        const option = document.createElement('option');
+        option.value = categorySelect.options[index]?.value || '';
+        option.textContent = cat;
+        categorySelect.appendChild(option);
+      });
+      document.getElementById('languageSelect').value = lang;
+
+      // Cập nhật các nút và nội dung động
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(btn => {
+        if (btn.textContent === 'Показать описание' || btn.textContent === 'Show description') {
+          btn.textContent = t.showDescription;
+        } else if (btn.textContent === 'Скрыть описание' || btn.textContent === 'Hide description') {
+          btn.textContent = t.hideDescription;
+        } else if (btn.textContent === 'Купить сейчас' || btn.textContent === 'Buy now') {
+          btn.textContent = t.buyNow;
+        }
+      });
+      const descriptions = document.querySelectorAll('.description');
+      descriptions.forEach(desc => {
+        if (desc.textContent === 'Нет описания.' || desc.textContent === 'No description.') {
+          desc.textContent = t.noDescription;
+        }
+      });
+    }
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
@@ -296,15 +359,21 @@
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <div class="price">${product.price} ${product.currency}</div>
-          <button class="btn" onclick="toggleDescription('${descId}', this)">Показать описание</button>
-          <div class="description" id="${descId}">${product.description || 'Нет описания.'}</div>
-          <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
+          <button class="btn" onclick="toggleDescription('${descId}', this)">${translations[currentLanguage].showDescription}</button>
+          <div class="description" id="${descId}">${product.description || translations[currentLanguage].noDescription}</div>
+          <a href="${product.affiliate_link}" class="btn" target="_blank">${translations[currentLanguage].buyNow}</a>
         `;
 
         container.appendChild(card);
       });
 
-      for (let i = 1; i <= Math.min(3, Math.ceil(filtered.length / itemsPerPage)); i++) {
+      // Phân trang với số trang tiếp theo
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      const maxVisiblePages = 3;
+      let startPage = Math.max(1, currentPage - 1);
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+      for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
         if (i === currentPage) btn.classList.add('active');
@@ -315,9 +384,9 @@
         pagination.appendChild(btn);
       }
 
-      if (currentPage < Math.ceil(filtered.length / itemsPerPage)) {
+      if (currentPage < totalPages) {
         const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Вперёд';
+        nextBtn.textContent = `${currentPage + 1} ${translations[currentLanguage].forward}`;
         nextBtn.onclick = () => {
           currentPage++;
           renderProducts();
@@ -330,15 +399,15 @@
       const target = document.getElementById(id);
       if (openDescription && openDescription !== target) {
         openDescription.style.display = 'none';
-        openDescription.previousElementSibling.textContent = 'Показать описание';
+        openDescription.previousElementSibling.textContent = translations[currentLanguage].showDescription;
       }
       if (target.style.display === 'block') {
         target.style.display = 'none';
-        btn.textContent = 'Показать описание';
+        btn.textContent = translations[currentLanguage].showDescription;
         openDescription = null;
       } else {
         target.style.display = 'block';
-        btn.textContent = 'Скрыть описание';
+        btn.textContent = translations[currentLanguage].hideDescription;
         openDescription = target;
       }
     }
@@ -346,7 +415,6 @@
     function toggleFavorite(productId, button) {
       favoriteCounts[productId] = (favoriteCounts[productId] || 0) + 1;
       button.querySelector('.favorite-count').textContent = favoriteCounts[productId];
-      // Loại bỏ thông báo, chỉ cập nhật số lượng yêu thích
     }
 
     function showFavorites() {
@@ -357,15 +425,15 @@
       if (favoriteProducts.length > 0) {
         favoriteProducts.forEach(product => {
           const item = document.createElement('div');
-          item.innerHTML = `${product.name} (Yêu thích: ${favoriteCounts[product.id]})`;
-          item.onclick = () => window.open(product.affiliate_link, '_blank'); // Chuyển hướng đến liên kết thanh toán
+          item.innerHTML = `${product.name} (Избранное: ${favoriteCounts[product.id]})`;
+          item.onclick = () => window.open(product.affiliate_link, '_blank');
           favoritesList.appendChild(item);
         });
         favoritesList.classList.add('active');
         favoritesList.style.right = '1rem';
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
       } else {
-        favoritesList.innerHTML = 'Không có sản phẩm yêu thích.';
+        favoritesList.innerHTML = translations[currentLanguage].noFavorites;
         favoritesList.classList.add('active');
         favoritesList.style.right = '1rem';
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
@@ -394,6 +462,12 @@
       renderProducts();
     });
 
+    document.getElementById('languageSelect').addEventListener('change', (e) => {
+      updateLanguage(e.target.value);
+      renderProducts(); // Cập nhật giao diện với ngôn ngữ mới
+    });
+
+    updateLanguage('ru'); // Mặc định là tiếng Nga
     loadProducts();
   </script>
 </body>
