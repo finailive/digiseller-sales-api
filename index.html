@@ -256,7 +256,7 @@
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <div class="price">${product.price} ${product.currency}</div>
-          <button class="btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'block' ? 'none' : 'block'; this.textContent = desc.style.display === 'block' ? 'Скрыть описание' : 'Показать описание';">Показать описание</button>
+          <button class="btn toggle-desc" onclick="toggleDescription(this)">Показать описание</button>
           <div class="description">${product.description || 'Нет описания.'}</div>
           <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
           <button class="btn" onclick='toggleFavorite(${JSON.stringify(product)})'>❤ В избранное</button>
@@ -323,6 +323,24 @@
     });
 
     loadProducts();
+    function toggleDescription(button) {
+  // Đóng tất cả mô tả
+  document.querySelectorAll('.description').forEach(desc => {
+    desc.style.display = 'none';
+  });
+
+  // Reset lại tất cả các nút
+  document.querySelectorAll('.btn.toggle-desc').forEach(btn => {
+    btn.textContent = 'Показать описание';
+  });
+
+  // Mở mô tả nếu đang bị ẩn
+  const desc = button.nextElementSibling;
+  if (desc && desc.classList.contains('description')) {
+    desc.style.display = 'block';
+    button.textContent = 'Скрыть описание';
+  }
+}
   </script>
 </body>
 </html>
