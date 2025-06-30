@@ -27,6 +27,7 @@
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-bottom: 1.5rem;
+      position: relative;
     }
     .controls input, .controls select {
       padding: 0.75rem;
@@ -51,6 +52,10 @@
       cursor: pointer;
       margin-right: 1rem;
       transition: border-color 0.3s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
     }
     .language-select:focus {
       border-color: #007bff;
@@ -65,6 +70,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background-color 0.3s ease;
+      margin-left: auto; /* Đẩy nút sang phải */
     }
     .favorites-btn:hover {
       background: #0056b3;
@@ -81,6 +87,7 @@
       overflow-y: auto;
       z-index: 1000;
       margin-top: 0.5rem;
+      right: 1rem; /* Căn phải với nút Favorites */
     }
     .favorites-list.active {
       display: block;
@@ -99,6 +106,11 @@
       }
       .favorites-btn {
         margin-top: 0.75rem;
+        width: 100%;
+        margin-left: 0;
+      }
+      .favorites-list {
+        right: 0;
         width: 100%;
       }
     }
@@ -344,12 +356,12 @@
           favoritesList.appendChild(item);
         });
         favoritesList.classList.add('active');
-        favoritesList.style.left = `${document.querySelector('.favorites-btn').offsetLeft}px`;
+        favoritesList.style.right = '1rem'; // Căn phải cố định
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
       } else {
         favoritesList.innerHTML = 'Không có sản phẩm yêu thích.';
         favoritesList.classList.add('active');
-        favoritesList.style.left = `${document.querySelector('.favorites-btn').offsetLeft}px`;
+        favoritesList.style.right = '1rem';
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
       }
 
