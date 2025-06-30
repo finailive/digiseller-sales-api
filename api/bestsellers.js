@@ -44,13 +44,16 @@ module.exports = async (req, res) => {
         });
 
         if (data?.product?.name) {
+          const image = data.product.preview_imgs?.[0]?.url || "";
+          if (!image) return; // ❌ Bỏ qua nếu không có ảnh
+
           products.push({
             id,
             name: data.product.name,
             price: data.product.price,
             currency: data.product.currency || "USD",
             description: sanitizeDescription(data.product.info),
-            image: data.product.preview_imgs?.[0]?.url || "",
+            image,
             affiliate_link: `https://www.oplata.info/asp2/pay_wm.asp?id_d=${id}&ai=${affiliateId}`,
           });
         }
