@@ -93,7 +93,7 @@
       display: block;
     }
     .favorites-list div {
-      padding: 0.5rem;
+      padding: 0.75rem;
       border-bottom: 1px solid #eee;
       cursor: pointer;
       transition: background-color 0.3s ease;
@@ -325,6 +325,17 @@
       return text;
     }
 
+    function calculateMatchPercentage(search, text) {
+      if (!search || !text) return 0;
+      const searchLower = search.toLowerCase();
+      const textLower = text.toLowerCase();
+      let matches = 0;
+      for (let i = 0; i < searchLower.length; i++) {
+        if (textLower.includes(searchLower[i])) matches++;
+      }
+      return (matches / searchLower.length) * 100;
+    }
+
     let currentLanguage = 'ru';
 
     function updateLanguage(lang) {
@@ -381,17 +392,9 @@
       const category = document.getElementById('categoryFilter').value.toLowerCase();
 
       let filtered = allProducts.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search);
-        if (!category || category === 'все категории') return matchesSearch;
-        return matchesSearch && (
-          (category === 'игры' && p.name.toLowerCase().includes('игры')) ||
-          (category === 'карты' && p.name.toLowerCase().includes('карты')) ||
-          (category === 'по для пк' && p.name.toLowerCase().includes('по для пк')) ||
-          (category === 'itunes & app store' && p.name.toLowerCase().includes('itunes')) ||
-          (category === 'игровые аккаунты' && p.name.toLowerCase().includes('аккаунт')) ||
-          (category === 'социальные сети' && p.name.toLowerCase().includes('социальные')) ||
-          (category === 'мобильное по' && p.name.toLowerCase().includes('мобильное'))
-        );
+        const nameMatch = calculateMatchPercentage(search, p.name) >= 10;
+        const categoryMatch = !category || category === 'все категории' || calculateMatchPercentage(category, p.name) >= 10;
+        return (nameMatch || search.length === 0) && categoryMatch;
       });
 
       const start = (currentPage - 1) * itemsPerPage;
