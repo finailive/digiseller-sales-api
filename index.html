@@ -239,7 +239,7 @@
 
     function toggleFavorite(productId, button) {
       favoriteCounts[productId] = (favoriteCounts[productId] || 0) + 1;
-      button.querySelector('.favorite-count').textContent = favoriteCounts[productId];
+      button.querySelector('.favorite-count').textContent = favoriteCounts[product.id];
       alert(`Добавлено в избранное (${favoriteCounts[productId]} lần)`);
     }
 
