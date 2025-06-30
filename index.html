@@ -70,7 +70,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background-color 0.3s ease;
-      margin-left: auto; /* Đẩy nút sang phải */
+      margin-left: auto;
     }
     .favorites-btn:hover {
       background: #0056b3;
@@ -87,7 +87,7 @@
       overflow-y: auto;
       z-index: 1000;
       margin-top: 0.5rem;
-      right: 1rem; /* Căn phải với nút Favorites */
+      right: 1rem;
     }
     .favorites-list.active {
       display: block;
@@ -95,6 +95,11 @@
     .favorites-list div {
       padding: 0.5rem;
       border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .favorites-list div:hover {
+      background-color: #f8f9fa;
     }
     .favorites-list div:last-child {
       border-bottom: none;
@@ -341,7 +346,7 @@
     function toggleFavorite(productId, button) {
       favoriteCounts[productId] = (favoriteCounts[productId] || 0) + 1;
       button.querySelector('.favorite-count').textContent = favoriteCounts[productId];
-      alert(`Добавлено в избранное (${favoriteCounts[productId]} lần)`);
+      // Loại bỏ thông báo, chỉ cập nhật số lượng yêu thích
     }
 
     function showFavorites() {
@@ -353,10 +358,11 @@
         favoriteProducts.forEach(product => {
           const item = document.createElement('div');
           item.innerHTML = `${product.name} (Yêu thích: ${favoriteCounts[product.id]})`;
+          item.onclick = () => window.open(product.affiliate_link, '_blank'); // Chuyển hướng đến liên kết thanh toán
           favoritesList.appendChild(item);
         });
         favoritesList.classList.add('active');
-        favoritesList.style.right = '1rem'; // Căn phải cố định
+        favoritesList.style.right = '1rem';
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
       } else {
         favoritesList.innerHTML = 'Không có sản phẩm yêu thích.';
