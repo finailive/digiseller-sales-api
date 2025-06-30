@@ -10,33 +10,61 @@
       padding: 1rem;
       max-width: 1200px;
       margin: auto;
+      background-color: #f5f5f5;
     }
     h1 {
       text-align: center;
+      color: #333;
+      margin-bottom: 1.5rem;
     }
     .controls {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      margin-bottom: 1rem;
       align-items: center;
+      background-color: #e9ecef;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
     }
     .controls input, .controls select {
-      padding: 0.5rem;
+      padding: 0.75rem;
       font-size: 1rem;
-      margin-bottom: 0.5rem;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
       width: 100%;
       max-width: 48%;
+      transition: border-color 0.3s ease;
+    }
+    .controls input:focus, .controls select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    .language-select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      margin-right: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    .language-select:focus {
+      border-color: #007bff;
+      outline: none;
     }
     .favorites-btn {
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1.5rem;
       border: none;
       border-radius: 6px;
       background: #007bff;
       color: white;
       cursor: pointer;
-      font-size: 0.9rem;
-      margin-left: 1rem;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
     }
     .favorites-btn:hover {
       background: #0056b3;
@@ -48,40 +76,53 @@
       border: 1px solid #ccc;
       border-radius: 6px;
       padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       max-height: 200px;
       overflow-y: auto;
       z-index: 1000;
+      margin-top: 0.5rem;
     }
     .favorites-list.active {
       display: block;
     }
+    .favorites-list div {
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+    }
+    .favorites-list div:last-child {
+      border-bottom: none;
+    }
     @media (max-width: 600px) {
-      .controls input, .controls select {
+      .controls input, .controls select, .language-select {
         max-width: 100%;
+        margin-right: 0;
       }
       .favorites-btn {
-        margin-left: 0;
-        margin-top: 0.5rem;
+        margin-top: 0.75rem;
         width: 100%;
       }
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
+      gap: 1.5rem;
     }
     .card {
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       word-break: break-word;
       overflow: hidden;
       position: relative;
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
     }
     .card img {
       width: 100%;
@@ -94,10 +135,12 @@
       font-size: 1rem;
       text-align: center;
       min-height: 48px;
+      color: #333;
     }
     .price {
       font-weight: bold;
       color: #2d2d2d;
+      margin-top: 0.5rem;
     }
     .description {
       display: none;
@@ -106,16 +149,18 @@
       text-align: left;
       max-height: 200px;
       overflow-y: auto;
+      color: #666;
     }
     .btn {
-      margin-top: 0.5rem;
-      padding: 0.5rem 1rem;
+      margin-top: 0.75rem;
+      padding: 0.75rem 1.5rem;
       border: none;
       border-radius: 6px;
       background: #007bff;
       color: white;
       cursor: pointer;
       font-size: 0.9rem;
+      transition: background-color 0.3s ease;
     }
     .btn:hover {
       background: #0056b3;
@@ -126,20 +171,21 @@
       left: 10px;
       background: none;
       border: none;
-      font-size: 1rem;
+      font-size: 1.2rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 5px;
-      color: #ff0000;
+      color: #ff4444;
       padding: 0.3rem 0.5rem;
-      border-radius: 4px;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
     }
     .favorite-btn:hover {
-      background: rgba(255, 0, 0, 0.1);
+      background: rgba(255, 68, 68, 0.2);
     }
     .favorite-count {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: #333;
     }
     .pagination {
@@ -154,8 +200,10 @@
       border: 1px solid #ccc;
       background: #f8f8f8;
       cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
     }
-    .pagination button.active {
+    .pagination button:hover, .pagination button.active {
       background: #007bff;
       color: white;
     }
@@ -173,6 +221,11 @@
       <option value="Gift">Подарки</option>
       <option value="Card">Карты</option>
       <option value="Account">Аккаунты</option>
+    </select>
+    <select class="language-select">
+      <option>🌐 Выберите язык</option>
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
     </select>
     <button class="favorites-btn" onclick="showFavorites()">Favorites</button>
     <div class="favorites-list" id="favoritesList"></div>
@@ -300,7 +353,6 @@
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
       }
 
-      // Ẩn danh sách khi click ra ngoài
       setTimeout(() => {
         document.addEventListener('click', hideFavorites);
       }, 0);
