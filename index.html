@@ -259,6 +259,7 @@
         showDescription: "Показать описание",
         hideDescription: "Скрыть описание",
         buyNow: "Купить сейчас",
+        salePage: "Страница продаж",
         noDescription: "Нет описания.",
         noFavorites: "Нет избранных продуктов.",
         forward: "Вперёд"
@@ -270,6 +271,7 @@
         showDescription: "Show description",
         hideDescription: "Hide description",
         buyNow: "Buy now",
+        salePage: "Sale page",
         noDescription: "No description.",
         noFavorites: "No favorite products.",
         forward: "Forward"
@@ -291,9 +293,9 @@
         "Cards": "Карты",
         "PC Software": "ПО для ПК",
         "iTunes & App Store": "iTunes & App Store",
-        "Gaming Accounts": "Игровые аккаунты",
-        "Social Networks": "Социальные сети",
-        "Mobile Software": "Мобильное ПО"
+        "Игровые аккаунты": "Игровые аккаунты",
+        "Социальные сети": "Социальные сети",
+        "Мобильное ПО": "Мобильное ПО"
       },
       en: {
         "Игра": "Game",
@@ -356,6 +358,8 @@
           btn.textContent = t.hideDescription;
         } else if (btn.textContent === 'Купить сейчас' || btn.textContent === 'Buy now') {
           btn.textContent = t.buyNow;
+        } else if (btn.textContent === 'Страница продаж' || btn.textContent === 'Sale page') {
+          btn.textContent = t.salePage;
         }
       });
       const descriptions = document.querySelectorAll('.description');
@@ -379,7 +383,8 @@
       allProducts = allProducts.map(product => ({
         ...product,
         name: translateContent(product.name, currentLanguage),
-        description: translateContent(product.description, currentLanguage)
+        description: translateContent(product.description, currentLanguage),
+        sale_link: `https://plati.market/sale/${product.id}?ai=1393244` // Add sale page link
       }));
       renderProducts();
     }
@@ -421,6 +426,7 @@
           <div class="price">${product.price} ${product.currency}</div>
           <button class="btn" onclick="toggleDescription('${descId}', this)">${translations[currentLanguage].showDescription}</button>
           <div class="description" id="${descId}">${product.description || translations[currentLanguage].noDescription}</div>
+          <a href="${product.sale_link}" class="btn" target="_blank">${translations[currentLanguage].salePage}</a>
           <a href="${product.affiliate_link}" class="btn" target="_blank">${translations[currentLanguage].buyNow}</a>
         `;
 
