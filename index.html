@@ -141,6 +141,19 @@
 </head>
 <body>
   <h1>🔥 Топ продаж</h1>
+
+  <!-- Ngôn ngữ -->
+  <div style="text-align: center; margin-bottom: 1rem;">
+    <select id="languageSwitcher" style="padding: 0.5rem; font-size: 1rem;">
+      <option value="">🌐 Выберите язык</option>
+      <option value="ru">🇷🇺 Русский</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="vi">🇻🇳 Tiếng Việt</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+    </select>
+  </div>
+
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Поиск по названию...">
     <select id="categoryFilter">
@@ -161,6 +174,30 @@
     <ul id="favoriteItems"></ul>
   </div>
 
+  <!-- Google Translate -->
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'ru',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script>
+    document.getElementById('languageSwitcher').addEventListener('change', function () {
+      const lang = this.value;
+      if (!lang) return;
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = lang;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+  </script>
+
+  <!-- Sản phẩm -->
   <script>
     let allProducts = [];
     let currentPage = 1;
