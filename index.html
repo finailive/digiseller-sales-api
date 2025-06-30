@@ -142,7 +142,6 @@
 <body>
   <h1>🔥 Топ продаж</h1>
 
-  <!-- Ngôn ngữ -->
   <div style="text-align: center; margin-bottom: 1rem;">
     <select id="languageSwitcher" style="padding: 0.5rem; font-size: 1rem;">
       <option value="">🌐 Выберите язык</option>
@@ -165,6 +164,7 @@
       <option value="Account">Аккаунты</option>
     </select>
   </div>
+
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
 
@@ -173,7 +173,6 @@
     <h3>Избранное</h3>
     <ul id="favoriteItems"></ul>
   </div>
-
   <!-- Google Translate -->
   <div id="google_translate_element" style="display:none;"></div>
   <script type="text/javascript">
@@ -197,7 +196,6 @@
     });
   </script>
 
-  <!-- Sản phẩm -->
   <script>
     let allProducts = [];
     let currentPage = 1;
@@ -233,6 +231,7 @@
 
     function renderProducts() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
       const container = document.getElementById('productGrid');
       const pagination = document.getElementById('pagination');
       const search = document.getElementById('searchInput').value.toLowerCase();
@@ -281,6 +280,7 @@
         prevBtn.onclick = () => {
           currentPage--;
           renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         pagination.appendChild(prevBtn);
       }
@@ -292,6 +292,7 @@
         btn.onclick = () => {
           currentPage = i;
           renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         pagination.appendChild(btn);
       }
@@ -302,6 +303,7 @@
         nextBtn.onclick = () => {
           currentPage++;
           renderProducts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         pagination.appendChild(nextBtn);
       }
