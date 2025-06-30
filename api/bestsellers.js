@@ -1,67 +1,75 @@
-const fs = require("fs");
-const path = require("path");
-const axios = require("axios");
+import fs from 'fs/promises';
+import path from 'path';
 
-const affiliateId = "1393244";
+const translationDict = {
+  ru: {
+    "Game": "Игра",
+    "Software": "Программное обеспечение",
+    "Gift Card": "Подарочная карта",
+    "Account": "Аккаунт",
+    "No description": "Нет описания",
+    "PlayStation": "PlayStation",
+    "Xbox": "Xbox",
+    "Mobile": "Мобильный",
+    "Software License": "Лицензия программного обеспечения"
+  },
+  en: {
+    "Игра": "Game",
+    "Программное обеспечение": "Software",
+    "Подарочная карта": "Gift Card",
+    "Аккаунт": "Account",
+    "Нет описания": "No description",
+    "PlayStation": "PlayStation",
+    "Xbox": "Xbox",
+    "Мобильный": "Mobile",
+    "Лицензия программного обеспечения": "Software License"
+  }
+};
 
-// Hàm lọc mô tả, cắt bỏ JSON không mong muốn
-function sanitizeDescription(raw) {
-  if (!raw) return '';
-  const cutoff = raw.indexOf('"image":');
-  let clean = cutoff > 0 ? raw.slice(0, cutoff) : raw;
-  if (clean.length > 1000) clean = clean.slice(0, 1000) + '...';
-  return clean;
+function translate(text, lang) {
+  if (!text || !translationDict[lang]) return text || '';
+  for (let key in translationDict[lang]) {
+    if (text.includes(key)) {
+      return text.replace(new RegExp(key, 'g'), translationDict[lang][key]);
+    }
+  }
+  return text;
 }
 
-module.exports = async (req, res) => {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+export async function GET(req) {
+  const url = new URL(req.url);
+  const page = parseInt(url.searchParams.get('page') || '1');
+  const limit = parseInt(url.searchParams.get('limit') || '12');
+  const lang = url.searchParams.get('lang') || 'ru';
 
-  const filePath = path.resolve(process.cwd(), "id.txt");
-  let idListRaw;
+  const filePath = path.resolve('./public/id.txt');
+  const idList = (await fs.readFile(filePath, 'utf-8')).split(',').map(id => parseInt(id.trim()));
 
-  try {
-    idListRaw = fs.readFileSync(filePath, "utf8");
-  } catch (err) {
-    return res.status(500).json({ error: "Không đọc được file id.txt", details: err.message });
-  }
+  const start = (page - 1) * limit;
+  const idsPage = idList.slice(start, start + limit);
 
-  const productIds = idListRaw
-    .split(/[\s,]+/)
-    .map(id => parseInt(id))
-    .filter(id => !isNaN(id));
+  const response = await fetch('https://api.digiseller.com/api/products/list', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ ids: idsPage, lang: lang === 'ru' ? 'ru-RU' : 'en-US' })
+  });
 
-  const products = [];
+  const result = await response.json();
 
-  await Promise.allSettled(
-    productIds.map(async (id) => {
-      try {
-        const { data } = await axios.get(`https://api.digiseller.com/api/products/${id}/data`, {
-          headers: {
-            Accept: "application/json",
-          },
-        });
+  const products = result.products.map(p => ({
+    id: p.id,
+    name: translate(p.name, lang),
+    description: translate(p.desc || '', lang),
+    image: p.image?.url || '',
+    price: p.prices?.[0]?.amount || '',
+    currency: p.prices?.[0]?.currency?.name || '',
+    affiliate_link: `https://plati.market/itm/${p.id}?ai=1393244`
+  }));
 
-        if (data?.product?.name) {
-          const image = data.product.preview_imgs?.[0]?.url || "";
-          if (!image) return; // ❌ Bỏ qua nếu không có ảnh
-
-          products.push({
-            id,
-            name: data.product.name,
-            price: data.product.price,
-            currency: data.product.currency || "USD",
-            description: sanitizeDescription(data.product.info),
-            image,
-            affiliate_link: `https://www.oplata.info/asp2/pay_wm.asp?id_d=${id}&ai=${affiliateId}`,
-          });
-        }
-      } catch (err) {
-        // Bỏ qua sản phẩm bị lỗi
-      }
-    })
-  );
-
-  return res.status(200).json(products);
-};
+  return new Response(JSON.stringify({ products, total: idList.length }), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
