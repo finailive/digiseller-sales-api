@@ -63,5 +63,15 @@ module.exports = async (req, res) => {
     })
   );
 
-  return res.status(200).json(products);
+  // Phân trang
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 12;
+  const offset = (page - 1) * limit;
+  const totalPages = Math.ceil(products.length / limit);
+  const paginatedProducts = products.slice(offset, offset + limit);
+
+  return res.status(200).json({
+    products: paginatedProducts,
+    totalPages
+  });
 };
