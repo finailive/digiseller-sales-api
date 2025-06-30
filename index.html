@@ -14,6 +14,24 @@
     h1 {
       text-align: center;
     }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .controls input, .controls select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      width: 100%;
+      max-width: 48%;
+    }
+    @media (max-width: 600px) {
+      .controls input, .controls select {
+        max-width: 100%;
+      }
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -23,19 +41,35 @@
       border: 1px solid #ccc;
       border-radius: 12px;
       padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
       align-items: center;
+      word-break: break-word;
     }
     .card img {
+      width: 100%;
+      height: auto;
       max-height: 160px;
       object-fit: contain;
       margin-bottom: 1rem;
+    }
+    .card h3 {
+      font-size: 1rem;
+      text-align: center;
+      min-height: 48px;
+      word-break: break-word;
+    }
+    .price {
+      font-weight: bold;
+      color: #2d2d2d;
     }
     .description {
       display: none;
       font-size: 0.9rem;
       margin-top: 0.5rem;
+      text-align: left;
+      word-break: break-word;
       max-height: 200px;
       overflow-y: auto;
     }
@@ -47,18 +81,128 @@
       background: #007bff;
       color: white;
       cursor: pointer;
+      font-size: 0.9rem;
     }
     .btn:hover {
       background: #0056b3;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 2rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .pagination button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ccc;
+      background: #f8f8f8;
+      cursor: pointer;
+    }
+    .pagination button.active {
+      background: #007bff;
+      color: white;
+    }
+    #favoritesBtn {
+      position: fixed;
+      top: 100px;
+      left: 10px;
+      background: #ffc107;
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      font-size: 1rem;
+    }
+    #favoritesList {
+      position: fixed;
+      top: 160px;
+      left: 10px;
+      width: 260px;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 999;
+    }
+    #favoritesList ul {
+      padding-left: 1rem;
+      list-style: disc;
+    }
+    #favoritesList li {
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
 <body>
   <h1>🔥 Топ продаж</h1>
-  <div class="grid" id="productGrid"></div>
 
+  <!-- Ngôn ngữ -->
+  <div style="text-align: center; margin-bottom: 1rem;">
+    <select id="languageSwitcher" style="padding: 0.5rem; font-size: 1rem;">
+      <option value="">🌐 Выберите язык</option>
+      <option value="ru">🇷🇺 Русский</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="vi">🇻🇳 Tiếng Việt</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+    </select>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Поиск по названию...">
+    <select id="categoryFilter">
+      <option value="">Все категории</option>
+      <option value="Steam">Steam</option>
+      <option value="Windows">Windows</option>
+      <option value="Gift">Подарки</option>
+      <option value="Card">Карты</option>
+      <option value="Account">Аккаунты</option>
+    </select>
+  </div>
+  <div class="grid" id="productGrid"></div>
+  <div class="pagination" id="pagination"></div>
+
+  <button id="favoritesBtn">❤ <span id="favoriteCount">0</span></button>
+  <div id="favoritesList">
+    <h3>Избранное</h3>
+    <ul id="favoriteItems"></ul>
+  </div>
+
+  <!-- Google Translate -->
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'ru',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script>
+    document.getElementById('languageSwitcher').addEventListener('change', function () {
+      const lang = this.value;
+      if (!lang) return;
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = lang;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+  </script>
+
+  <!-- Sản phẩm -->
   <script>
     let allProducts = [];
+    let currentPage = 1;
+    const itemsPerPage = 12;
+    let favorites = [];
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
@@ -66,46 +210,117 @@
       renderProducts();
     }
 
-    function renderProducts() {
-      const container = document.getElementById('productGrid');
-      container.innerHTML = '';
+    function toggleFavorite(product) {
+      const exists = favorites.find(p => p.id === product.id);
+      if (!exists) {
+        favorites.push(product);
+      } else {
+        favorites = favorites.filter(p => p.id !== product.id);
+      }
+      updateFavorites();
+      document.getElementById('favoriteCount').textContent = favorites.length;
+    }
 
-      allProducts.forEach(product => {
+    function updateFavorites() {
+      const list = document.getElementById('favoriteItems');
+      list.innerHTML = '';
+      favorites.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${p.affiliate_link}" target="_blank">${p.name}</a>`;
+        list.appendChild(li);
+      });
+    }
+
+    function renderProducts() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const container = document.getElementById('productGrid');
+      const pagination = document.getElementById('pagination');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const category = document.getElementById('categoryFilter').value.toLowerCase();
+
+      let filtered = allProducts.filter(p => {
+        return p.name.toLowerCase().includes(search) && (!category || p.name.toLowerCase().includes(category));
+      });
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const paginated = filtered.slice(start, start + itemsPerPage);
+
+      container.innerHTML = '';
+      pagination.innerHTML = '';
+
+      paginated.forEach(product => {
         const card = document.createElement('div');
         card.className = 'card';
+
         card.innerHTML = `
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <div class="price">${product.price} ${product.currency}</div>
-          <button class="btn toggle-desc" onclick="toggleDescription(this)">Показать описание</button>
+          <button class="btn" onclick="const desc = this.nextElementSibling; desc.style.display = desc.style.display === 'block' ? 'none' : 'block'; this.textContent = desc.style.display === 'block' ? 'Скрыть описание' : 'Показать описание';">Показать описание</button>
           <div class="description">${product.description || 'Нет описания.'}</div>
           <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
+          <button class="btn" onclick='toggleFavorite(${JSON.stringify(product)})'>❤ В избранное</button>
         `;
+
         container.appendChild(card);
       });
-    }
 
-    function toggleDescription(button) {
-      const allDescriptions = document.querySelectorAll('.description');
-      const allButtons = document.querySelectorAll('.btn.toggle-desc');
-      const thisDesc = button.nextElementSibling;
+      const pageCount = Math.ceil(filtered.length / itemsPerPage);
+      const visiblePages = 3;
+      const half = Math.floor(visiblePages / 2);
+      let startPage = Math.max(1, currentPage - half);
+      let endPage = Math.min(pageCount, startPage + visiblePages - 1);
 
-      allDescriptions.forEach(desc => {
-        if (desc !== thisDesc) desc.style.display = 'none';
-      });
+      if (endPage - startPage < visiblePages - 1) {
+        startPage = Math.max(1, endPage - visiblePages + 1);
+      }
 
-      allButtons.forEach(btn => {
-        if (btn !== button) btn.textContent = 'Показать описание';
-      });
+      if (currentPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = 'Назад';
+        prevBtn.onclick = () => {
+          currentPage--;
+          renderProducts();
+        };
+        pagination.appendChild(prevBtn);
+      }
 
-      if (thisDesc.style.display === 'block') {
-        thisDesc.style.display = 'none';
-        button.textContent = 'Показать описание';
-      } else {
-        thisDesc.style.display = 'block';
-        button.textContent = 'Скрыть описание';
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = (i === currentPage ? 'active' : '');
+        btn.onclick = () => {
+          currentPage = i;
+          renderProducts();
+        };
+        pagination.appendChild(btn);
+      }
+
+      if (currentPage < pageCount) {
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Вперёд';
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderProducts();
+        };
+        pagination.appendChild(nextBtn);
       }
     }
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+      currentPage = 1;
+      renderProducts();
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', () => {
+      currentPage = 1;
+      renderProducts();
+    });
+
+    document.getElementById('favoritesBtn').addEventListener('click', () => {
+      const list = document.getElementById('favoritesList');
+      list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    });
 
     loadProducts();
   </script>
