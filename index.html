@@ -380,12 +380,35 @@
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
       allProducts = await res.json();
-      allProducts = allProducts.map(product => ({
-        ...product,
-        name: translateContent(product.name, currentLanguage),
-        description: translateContent(product.description, currentLanguage),
-        sale_link: `https://plati.market/sale/${product.id}?ai=1393244` // Add sale page link
-      }));
+      allProducts = allProducts.map(product => {
+        let affiliate_link;
+        let sale_link;
+        const affiliate_id = '1393244';
+        switch (product.platform) {
+          case 'plati':
+            affiliate_link = `https://plati.market/itm/${product.product_id}?ai=${affiliate_id}`;
+            sale_link = `https://plati.market/itm/${product.product_id}?ai=${affiliate_id}`;
+            break;
+          case 'ggsel':
+            affiliate_link = `https://ggsel.net/catalog/product/${product.product_id}?ai=${affiliate_id}`;
+            sale_link = `https://ggsel.net/catalog/product/${product.product_id}?ai=${affiliate_id}`;
+            break;
+          case 'wmcentre':
+            affiliate_link = `https://wmcentre.net/item/${product.product_id}?ai=${affiliate_id}`;
+            sale_link = `https://wmcentre.net/item/${product.product_id}?ai=${affiliate_id}`;
+            break;
+          default:
+            affiliate_link = '';
+            sale_link = '';
+        }
+        return {
+          ...product,
+          name: translateContent(product.name, currentLanguage),
+          description: translateContent(product.description, currentLanguage),
+          affiliate_link,
+          sale_link
+        };
+      });
       renderProducts();
     }
 
