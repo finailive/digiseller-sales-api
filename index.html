@@ -398,8 +398,8 @@
             sale_link = `https://wmcentre.net/item/${product.product_id}?ai=${affiliate_id}`;
             break;
           default:
-            affiliate_link = '';
-            sale_link = '';
+            affiliate_link = `https://proxy.smarttravelly.com/itm/${product.product_id}?ai=${affiliate_id}`;
+            sale_link = `https://proxy.smarttravelly.com/itm/${product.product_id}?ai=${affiliate_id}`;
         }
         return {
           ...product,
