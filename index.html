@@ -5,11 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Топ продаж</title>
   <style>
+    html, body {
+      height: 100%;
+    }
     body {
       font-family: Arial, sans-serif;
       padding: 1rem;
       max-width: 1200px;
       margin: auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     h1 {
       text-align: center;
@@ -92,6 +98,7 @@
       margin-top: 2rem;
       gap: 0.5rem;
       flex-wrap: wrap;
+      z-index: 1;
     }
     .pagination button {
       padding: 0.5rem 1rem;
@@ -129,6 +136,8 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       display: none;
       z-index: 999;
+      max-height: 70vh;
+      overflow-y: auto;
     }
     #favoritesList ul {
       padding-left: 1rem;
@@ -136,6 +145,9 @@
     }
     #favoritesList li {
       margin-bottom: 0.5rem;
+    }
+    .footer-space {
+      height: 100px;
     }
   </style>
 </head>
@@ -169,6 +181,7 @@
   </div>
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
+  <div class="footer-space"></div>
 
   <div id="google_translate_element" style="display:none;"></div>
   <script type="text/javascript">
@@ -272,7 +285,7 @@
         pagination.appendChild(prevBtn);
       }
 
-      for (let i = 1; i <= Math.min(3, pageCount); i++) {
+      for (let i = 1; i <= pageCount && i <= 3; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
         if (i === currentPage) btn.className = 'active';
