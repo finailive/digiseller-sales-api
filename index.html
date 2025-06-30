@@ -142,7 +142,6 @@
 <body>
   <h1>🔥 Топ продаж</h1>
 
-  <!-- Ngôn ngữ -->
   <div style="text-align: center; margin-bottom: 1rem;">
     <select id="languageSwitcher" style="padding: 0.5rem; font-size: 1rem;">
       <option value="">🌐 Выберите язык</option>
@@ -165,6 +164,7 @@
       <option value="Account">Аккаунты</option>
     </select>
   </div>
+
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
 
@@ -174,7 +174,6 @@
     <ul id="favoriteItems"></ul>
   </div>
 
-  <!-- Google Translate -->
   <div id="google_translate_element" style="display:none;"></div>
   <script type="text/javascript">
     function googleTranslateElementInit() {
@@ -195,10 +194,7 @@
         select.dispatchEvent(new Event('change'));
       }
     });
-  </script>
 
-  <!-- Sản phẩm -->
-  <script>
     let allProducts = [];
     let currentPage = 1;
     const itemsPerPage = 12;
@@ -307,6 +303,18 @@
       }
     }
 
+    function toggleDescription(button) {
+      // Đóng mọi mô tả khác
+      document.querySelectorAll('.description').forEach(desc => desc.style.display = 'none');
+      document.querySelectorAll('.btn.toggle-desc').forEach(btn => btn.textContent = 'Показать описание');
+
+      const desc = button.nextElementSibling;
+      if (desc.style.display !== 'block') {
+        desc.style.display = 'block';
+        button.textContent = 'Скрыть описание';
+      }
+    }
+
     document.getElementById('searchInput').addEventListener('input', () => {
       currentPage = 1;
       renderProducts();
@@ -323,24 +331,6 @@
     });
 
     loadProducts();
-    function toggleDescription(button) {
-  // Đóng tất cả mô tả
-  document.querySelectorAll('.description').forEach(desc => {
-    desc.style.display = 'none';
-  });
-
-  // Reset lại tất cả các nút
-  document.querySelectorAll('.btn.toggle-desc').forEach(btn => {
-    btn.textContent = 'Показать описание';
-  });
-
-  // Mở mô tả nếu đang bị ẩn
-  const desc = button.nextElementSibling;
-  if (desc && desc.classList.contains('description')) {
-    desc.style.display = 'block';
-    button.textContent = 'Скрыть описание';
-  }
-}
   </script>
 </body>
 </html>
