@@ -46,7 +46,6 @@
       flex-direction: column;
       align-items: center;
       word-break: break-word;
-      overflow: hidden;
     }
     .card img {
       width: 100%;
@@ -59,6 +58,7 @@
       font-size: 1rem;
       text-align: center;
       min-height: 48px;
+      word-break: break-word;
     }
     .price {
       font-weight: bold;
@@ -69,6 +69,7 @@
       font-size: 0.9rem;
       margin-top: 0.5rem;
       text-align: left;
+      word-break: break-word;
       max-height: 200px;
       overflow-y: auto;
     }
@@ -102,11 +103,59 @@
       background: #007bff;
       color: white;
     }
+    #favoritesBtn {
+      position: fixed;
+      top: 100px;
+      left: 10px;
+      background: #ffc107;
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      font-size: 1rem;
+    }
+    #favoritesList {
+      position: fixed;
+      top: 160px;
+      left: 10px;
+      width: 260px;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 999;
+    }
+    #favoritesList ul {
+      padding-left: 1rem;
+      list-style: disc;
+    }
+    #favoritesList li {
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
   <h1>🔥 Топ продаж</h1>
-
+  <button id="favoritesBtn">❤ <span id="favoriteCount">0</span></button>
+  <div id="favoritesList">
+    <h3>Избранное</h3>
+    <ul id="favoriteItems"></ul>
+  </div>
+  <div style="text-align: center; margin-bottom: 1rem;">
+    <select id="languageSwitcher" style="padding: 0.5rem; font-size: 1rem;">
+      <option value="">🌐 Выберите язык</option>
+      <option value="ru">🇷🇺 Русский</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="vi">🇻🇳 Tiếng Việt</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+    </select>
+  </div>
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Поиск по названию...">
     <select id="categoryFilter">
@@ -121,16 +170,67 @@
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
 
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'ru', autoDisplay: false }, 'google_translate_element');
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
+    document.getElementById('languageSwitcher').addEventListener('change', function () {
+      const lang = this.value;
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = lang;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+
     let allProducts = [];
     let currentPage = 1;
     const itemsPerPage = 12;
+    let favorites = [];
     let openDescription = null;
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
       allProducts = await res.json();
       renderProducts();
+    }
+
+    function toggleFavorite(product) {
+      const exists = favorites.find(p => p.id === product.id);
+      if (!exists) favorites.push(product);
+      else favorites = favorites.filter(p => p.id !== product.id);
+      updateFavorites();
+      document.getElementById('favoriteCount').textContent = favorites.length;
+    }
+
+    function updateFavorites() {
+      const list = document.getElementById('favoriteItems');
+      list.innerHTML = '';
+      favorites.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${p.affiliate_link}" target="_blank">${p.name}</a>`;
+        list.appendChild(li);
+      });
+    }
+
+    function toggleDescription(desc, btn) {
+      if (openDescription && openDescription !== desc) {
+        openDescription.style.display = 'none';
+        openDescription.previousElementSibling.textContent = 'Показать описание';
+      }
+      if (desc.style.display === 'block') {
+        desc.style.display = 'none';
+        btn.textContent = 'Показать описание';
+        openDescription = null;
+      } else {
+        desc.style.display = 'block';
+        btn.textContent = 'Скрыть описание';
+        openDescription = desc;
+      }
     }
 
     function renderProducts() {
@@ -140,10 +240,7 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value.toLowerCase();
 
-      let filtered = allProducts.filter(p => {
-        return p.name.toLowerCase().includes(search) && (!category || p.name.toLowerCase().includes(category));
-      });
-
+      let filtered = allProducts.filter(p => p.name.toLowerCase().includes(search) && (!category || p.name.toLowerCase().includes(category)));
       const start = (currentPage - 1) * itemsPerPage;
       const paginated = filtered.slice(start, start + itemsPerPage);
 
@@ -155,68 +252,47 @@
         card.className = 'card';
 
         const descId = `desc-${product.id}`;
-
         card.innerHTML = `
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <div class="price">${product.price} ${product.currency}</div>
-          <button class="btn" onclick="toggleDescription('${descId}', this)">Показать описание</button>
+          <button class="btn" onclick="toggleDescription(this.nextElementSibling, this)">Показать описание</button>
           <div class="description" id="${descId}">${product.description || 'Нет описания.'}</div>
           <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
-          <button class="btn" onclick='alert("Добавлено в избранное")'>❤ В избранное</button>
+          <button class="btn" onclick='toggleFavorite(${JSON.stringify(product)})'>❤ В избранное</button>
         `;
-
         container.appendChild(card);
       });
 
-      // Pagination: only show 1, 2, 3, Вперёд
-      for (let i = 1; i <= Math.min(3, Math.ceil(filtered.length / itemsPerPage)); i++) {
+      const pageCount = Math.ceil(filtered.length / itemsPerPage);
+      if (currentPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = 'Назад';
+        prevBtn.onclick = () => { currentPage--; renderProducts(); };
+        pagination.appendChild(prevBtn);
+      }
+
+      for (let i = 1; i <= Math.min(3, pageCount); i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
-        if (i === currentPage) btn.classList.add('active');
-        btn.onclick = () => {
-          currentPage = i;
-          renderProducts();
-        };
+        if (i === currentPage) btn.className = 'active';
+        btn.onclick = () => { currentPage = i; renderProducts(); };
         pagination.appendChild(btn);
       }
 
-      if (currentPage < Math.ceil(filtered.length / itemsPerPage)) {
+      if (currentPage < pageCount) {
         const nextBtn = document.createElement('button');
         nextBtn.textContent = 'Вперёд';
-        nextBtn.onclick = () => {
-          currentPage++;
-          renderProducts();
-        };
+        nextBtn.onclick = () => { currentPage++; renderProducts(); };
         pagination.appendChild(nextBtn);
       }
     }
 
-    function toggleDescription(id, btn) {
-      const target = document.getElementById(id);
-      if (openDescription && openDescription !== target) {
-        openDescription.style.display = 'none';
-        openDescription.previousElementSibling.textContent = 'Показать описание';
-      }
-      if (target.style.display === 'block') {
-        target.style.display = 'none';
-        btn.textContent = 'Показать описание';
-        openDescription = null;
-      } else {
-        target.style.display = 'block';
-        btn.textContent = 'Скрыть описание';
-        openDescription = target;
-      }
-    }
-
-    document.getElementById('searchInput').addEventListener('input', () => {
-      currentPage = 1;
-      renderProducts();
-    });
-
-    document.getElementById('categoryFilter').addEventListener('change', () => {
-      currentPage = 1;
-      renderProducts();
+    document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderProducts(); });
+    document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; renderProducts(); });
+    document.getElementById('favoritesBtn').addEventListener('click', () => {
+      const list = document.getElementById('favoritesList');
+      list.style.display = list.style.display === 'none' ? 'block' : 'none';
     });
 
     loadProducts();
