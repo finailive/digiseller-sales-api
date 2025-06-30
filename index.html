@@ -255,7 +255,7 @@
       ru: {
         title: "🔥 Топ продаж",
         searchPlaceholder: "Поиск по названию...",
-        categories: [],
+        categories: ["Все категории", "Игры", "Карты", "ПО для ПК", "iTunes & App Store", "Игровые аккаунты", "Социальные сети", "Мобильное ПО"],
         showDescription: "Показать описание",
         hideDescription: "Скрыть описание",
         buyNow: "Купить сейчас",
@@ -266,7 +266,7 @@
       en: {
         title: "🔥 Top Sales",
         searchPlaceholder: "Search by name...",
-        categories: [],
+        categories: ["All Categories", "Games", "Cards", "PC Software", "iTunes & App Store", "Gaming Accounts", "Social Networks", "Mobile Software"],
         showDescription: "Show description",
         hideDescription: "Hide description",
         buyNow: "Buy now",
@@ -282,14 +282,36 @@
         "Software": "Программное обеспечение",
         "Gift Card": "Подарочная карта",
         "Account": "Аккаунт",
-        "No description": "Нет описания"
+        "No description": "Нет описания",
+        "PlayStation": "PlayStation",
+        "Xbox": "Xbox",
+        "Mobile": "Мобильный",
+        "Software License": "Лицензия программного обеспечения",
+        "Games": "Игры",
+        "Cards": "Карты",
+        "PC Software": "ПО для ПК",
+        "iTunes & App Store": "iTunes & App Store",
+        "Gaming Accounts": "Игровые аккаунты",
+        "Social Networks": "Социальные сети",
+        "Mobile Software": "Мобильное ПО"
       },
       en: {
         "Игра": "Game",
         "Программное обеспечение": "Software",
         "Подарочная карта": "Gift Card",
         "Аккаунт": "Account",
-        "Нет описания": "No description"
+        "Нет описания": "No description",
+        "PlayStation": "PlayStation",
+        "Xbox": "Xbox",
+        "Мобильный": "Mobile",
+        "Лицензия программного обеспечения": "Software License",
+        "Игры": "Games",
+        "Карты": "Cards",
+        "ПО для ПК": "PC Software",
+        "iTunes & App Store": "iTunes & App Store",
+        "Игровые аккаунты": "Gaming Accounts",
+        "Социальные сети": "Social Networks",
+        "Мобильное ПО": "Mobile Software"
       }
     };
 
@@ -312,13 +334,7 @@
       document.querySelector('h1').textContent = t.title;
       document.getElementById('searchInput').placeholder = t.searchPlaceholder;
       const categorySelect = document.getElementById('categoryFilter');
-      categorySelect.innerHTML = '<option value="">Все категории</option>';
-      t.categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat.toLowerCase();
-        option.textContent = cat;
-        categorySelect.appendChild(option);
-      });
+      categorySelect.innerHTML = t.categories.map(cat => `<option value="${cat.toLowerCase()}">${cat}</option>`).join('');
       document.getElementById('languageSelect').value = lang;
 
       const buttons = document.querySelectorAll('.btn');
@@ -349,18 +365,6 @@
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
       allProducts = await res.json();
-      // Trích xuất danh mục từ product.name
-      const categories = [...new Set(allProducts.map(product => {
-        if (product.name.includes('Steam')) return 'Steam';
-        if (product.name.includes('Windows')) return 'Windows';
-        if (product.name.includes('Gift')) return 'Подарки';
-        if (product.name.includes('Card')) return 'Карты';
-        if (product.name.includes('Account')) return 'Аккаунты';
-        return 'Другое';
-      }))];
-      translations.ru.categories = ['Все категории', ...categories];
-      translations.en.categories = ['All Categories', ...categories.map(cat => translateContent(cat, 'en'))];
-
       allProducts = allProducts.map(product => ({
         ...product,
         name: translateContent(product.name, currentLanguage),
@@ -377,7 +381,17 @@
       const category = document.getElementById('categoryFilter').value.toLowerCase();
 
       let filtered = allProducts.filter(p => {
-        return p.name.toLowerCase().includes(search) && (!category || p.name.toLowerCase().includes(category));
+        const matchesSearch = p.name.toLowerCase().includes(search);
+        if (!category || category === 'все категории') return matchesSearch;
+        return matchesSearch && (
+          (category === 'игры' && p.name.toLowerCase().includes('игры')) ||
+          (category === 'карты' && p.name.toLowerCase().includes('карты')) ||
+          (category === 'по для пк' && p.name.toLowerCase().includes('по для пк')) ||
+          (category === 'itunes & app store' && p.name.toLowerCase().includes('itunes')) ||
+          (category === 'игровые аккаунты' && p.name.toLowerCase().includes('аккаунт')) ||
+          (category === 'социальные сети' && p.name.toLowerCase().includes('социальные')) ||
+          (category === 'мобильное по' && p.name.toLowerCase().includes('мобильное'))
+        );
       });
 
       const start = (currentPage - 1) * itemsPerPage;
@@ -478,16 +492,6 @@
         }
         favoritesList.style.right = '1rem';
         favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
-      }
-      // Loại bỏ sự kiện click ra ngoài khi toggle
-      document.removeEventListener('click', hideFavorites);
-    }
-
-    function hideFavorites(e) {
-      const favoritesList = document.getElementById('favoritesList');
-      if (!favoritesList.contains(e.target) && e.target.className !== 'favorites-btn') {
-        favoritesList.classList.remove('active');
-        document.removeEventListener('click', hideFavorites);
       }
     }
 
