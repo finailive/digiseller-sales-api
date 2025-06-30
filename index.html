@@ -5,53 +5,141 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Топ продаж</title>
   <style>
-    html, body {
-      height: 100%;
-    }
     body {
       font-family: Arial, sans-serif;
       padding: 1rem;
       max-width: 1200px;
       margin: auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+      background-color: #f5f5f5;
     }
     h1 {
       text-align: center;
+      color: #333;
+      margin-bottom: 1.5rem;
     }
     .controls {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      align-items: center;
+      background-color: #e9ecef;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+      position: relative;
     }
     .controls input, .controls select {
-      padding: 0.5rem;
+      padding: 0.75rem;
       font-size: 1rem;
-      margin-bottom: 0.5rem;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
       width: 100%;
       max-width: 48%;
+      transition: border-color 0.3s ease;
+    }
+    .controls input:focus, .controls select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    .language-select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      margin-right: 1rem;
+      transition: border-color 0.3s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+    }
+    .language-select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    .favorites-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+      margin-left: auto;
+    }
+    .favorites-btn:hover {
+      background: #0056b3;
+    }
+    .favorites-list {
+      display: none;
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-top: 0.5rem;
+      right: 1rem;
+    }
+    .favorites-list.active {
+      display: block;
+    }
+    .favorites-list div {
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .favorites-list div:hover {
+      background-color: #f8f9fa;
+    }
+    .favorites-list div:last-child {
+      border-bottom: none;
     }
     @media (max-width: 600px) {
-      .controls input, .controls select {
+      .controls input, .controls select, .language-select {
         max-width: 100%;
+        margin-right: 0;
+      }
+      .favorites-btn {
+        margin-top: 0.75rem;
+        width: 100%;
+        margin-left: 0;
+      }
+      .favorites-list {
+        right: 0;
+        width: 100%;
       }
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
+      gap: 1.5rem;
     }
     .card {
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       border-radius: 12px;
       padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       word-break: break-word;
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
     }
     .card img {
       width: 100%;
@@ -64,33 +152,58 @@
       font-size: 1rem;
       text-align: center;
       min-height: 48px;
-      word-break: break-word;
+      color: #333;
     }
     .price {
       font-weight: bold;
       color: #2d2d2d;
+      margin-top: 0.5rem;
     }
     .description {
       display: none;
       font-size: 0.9rem;
       margin-top: 0.5rem;
       text-align: left;
-      word-break: break-word;
       max-height: 200px;
       overflow-y: auto;
+      color: #666;
     }
     .btn {
-      margin-top: 0.5rem;
-      padding: 0.5rem 1rem;
+      margin-top: 0.75rem;
+      padding: 0.75rem 1.5rem;
       border: none;
       border-radius: 6px;
       background: #007bff;
       color: white;
       cursor: pointer;
       font-size: 0.9rem;
+      transition: background-color 0.3s ease;
     }
     .btn:hover {
       background: #0056b3;
+    }
+    .favorite-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #ff4444;
+      padding: 0.3rem 0.5rem;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+    }
+    .favorite-btn:hover {
+      background: rgba(255, 68, 68, 0.2);
+    }
+    .favorite-count {
+      font-size: 0.9rem;
+      color: #333;
     }
     .pagination {
       display: flex;
@@ -98,93 +211,24 @@
       margin-top: 2rem;
       gap: 0.5rem;
       flex-wrap: wrap;
-      z-index: 1;
     }
     .pagination button {
       padding: 0.5rem 1rem;
       border: 1px solid #ccc;
       background: #f8f8f8;
       cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
     }
-    .pagination button.active {
+    .pagination button:hover, .pagination button.active {
       background: #007bff;
       color: white;
-    }
-    #favoritesBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: #ffc107;
-      border: none;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 1000;
-      font-size: 1rem;
-    }
-    #favoritesList {
-      position: fixed;
-      top: 70px;
-      left: 10px;
-      width: 260px;
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      display: none;
-      z-index: 999;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-    #favoritesList ul {
-      padding-left: 1rem;
-      list-style: disc;
-    }
-    #favoritesList li {
-      margin-bottom: 0.5rem;
-    }
-    .footer-space {
-      height: 100px;
     }
   </style>
 </head>
 <body>
   <h1>🔥 Топ продаж</h1>
-  <button id="favoritesBtn">❤ <span id="favoriteCount">0</span></button>
-  <div id="favoritesList">
-    <h3>Избранное</h3>
-    <ul id="favoriteItems"></ul>
-  </div>
-  <div style="text-align: center; margin-bottom: 1rem;">
-    <select id="languageSwitcher" style="padding: 0.5rem; font-size: 1rem;">
-      <option value="">🌐 Выберите язык</option>
-      <option value="ru">🇷🇺 Русский</option>
-      <option value="en">🇺🇸 English</option>
-      <option value="vi">🇻🇳 Tiếng Việt</option>
-      <option value="es">🇪🇸 Español</option>
-      <option value="zh-CN">🇨🇳 中文</option>
-    </select>
-  </div>
-  <div id="google_translate_element"></div>
-  <script type="text/javascript">
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({ pageLanguage: 'ru', autoDisplay: false }, 'google_translate_element');
-    }
-  </script>
-  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-  <script>
-    document.getElementById('languageSwitcher').addEventListener('change', function () {
-      const lang = this.value;
-      const select = document.querySelector('.goog-te-combo');
-      if (select) {
-        select.value = lang;
-        select.dispatchEvent(new Event('change'));
-      }
-    });
-  </script>
+
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Поиск по названию...">
     <select id="categoryFilter">
@@ -195,56 +239,129 @@
       <option value="Card">Карты</option>
       <option value="Account">Аккаунты</option>
     </select>
+    <select class="language-select" id="languageSelect">
+      <option value="ru">🌐 Выберите язык</option>
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+    </select>
+    <button class="favorites-btn" onclick="showFavorites()">Избранное</button>
+    <div class="favorites-list" id="favoritesList"></div>
   </div>
   <div class="grid" id="productGrid"></div>
   <div class="pagination" id="pagination"></div>
-  <div class="footer-space"></div>
 
   <script>
     let allProducts = [];
     let currentPage = 1;
     const itemsPerPage = 12;
-    let favorites = [];
     let openDescription = null;
+    let favoriteCounts = {};
+
+    // Chuỗi dịch và từ điển dịch cơ bản
+    const translations = {
+      ru: {
+        title: "🔥 Топ продаж",
+        searchPlaceholder: "Поиск по названию...",
+        categories: ["Все категории", "Steam", "Windows", "Подарки", "Карты", "Аккаунты"],
+        showDescription: "Показать описание",
+        hideDescription: "Скрыть описание",
+        buyNow: "Купить сейчас",
+        noDescription: "Нет описания.",
+        noFavorites: "Нет избранных продуктов.",
+        forward: "Вперёд"
+      },
+      en: {
+        title: "🔥 Top Sales",
+        searchPlaceholder: "Search by name...",
+        categories: ["All Categories", "Steam", "Windows", "Gifts", "Cards", "Accounts"],
+        showDescription: "Show description",
+        hideDescription: "Hide description",
+        buyNow: "Buy now",
+        noDescription: "No description.",
+        noFavorites: "No favorite products.",
+        forward: "Forward"
+      }
+    };
+
+    // Từ điển dịch cơ bản cho tiêu đề và mô tả (có thể mở rộng)
+    const translationDict = {
+      ru: {
+        "Game": "Игра",
+        "Software": "Программное обеспечение",
+        "Gift Card": "Подарочная карта",
+        "Account": "Аккаунт",
+        "No description": "Нет описания"
+      },
+      en: {
+        "Игра": "Game",
+        "Программное обеспечение": "Software",
+        "Подарочная карта": "Gift Card",
+        "Аккаунт": "Account",
+        "Нет описания": "No description"
+      }
+    };
+
+    function translateContent(text, lang) {
+      if (!text) return translations[lang].noDescription;
+      // Dịch đơn giản dựa trên từ điển
+      for (let key in translationDict[lang]) {
+        if (text.includes(key)) {
+          return text.replace(new RegExp(key, 'g'), translationDict[lang][key]);
+        }
+      }
+      return text; // Giữ nguyên nếu không tìm thấy từ cần dịch
+    }
+
+    let currentLanguage = 'ru';
+
+    function updateLanguage(lang) {
+      currentLanguage = lang;
+      const t = translations[lang];
+
+      document.querySelector('h1').textContent = t.title;
+      document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+      const categorySelect = document.getElementById('categoryFilter');
+      categorySelect.innerHTML = '';
+      t.categories.forEach((cat, index) => {
+        const option = document.createElement('option');
+        option.value = categorySelect.options[index]?.value || '';
+        option.textContent = cat;
+        categorySelect.appendChild(option);
+      });
+      document.getElementById('languageSelect').value = lang;
+
+      // Cập nhật các nút và nội dung động
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(btn => {
+        if (btn.textContent === 'Показать описание' || btn.textContent === 'Show description') {
+          btn.textContent = t.showDescription;
+        } else if (btn.textContent === 'Скрыть описание' || btn.textContent === 'Hide description') {
+          btn.textContent = t.hideDescription;
+        } else if (btn.textContent === 'Купить сейчас' || btn.textContent === 'Buy now') {
+          btn.textContent = t.buyNow;
+        }
+      });
+      const descriptions = document.querySelectorAll('.description');
+      descriptions.forEach(desc => {
+        if (desc.textContent === 'Нет описания.' || desc.textContent === 'No description.') {
+          desc.textContent = t.noDescription;
+        }
+      });
+
+      // Cập nhật lại danh sách sản phẩm với ngôn ngữ mới
+      renderProducts();
+    }
 
     async function loadProducts() {
       const res = await fetch('/api/bestsellers');
       allProducts = await res.json();
+      // Dịch dữ liệu từ API trước khi lưu
+      allProducts = allProducts.map(product => ({
+        ...product,
+        name: translateContent(product.name, currentLanguage),
+        description: translateContent(product.description, currentLanguage)
+      }));
       renderProducts();
-    }
-
-    function toggleFavorite(product) {
-      const exists = favorites.find(p => p.id === product.id);
-      if (!exists) favorites.push(product);
-      else favorites = favorites.filter(p => p.id !== product.id);
-      updateFavorites();
-      document.getElementById('favoriteCount').textContent = favorites.length;
-    }
-
-    function updateFavorites() {
-      const list = document.getElementById('favoriteItems');
-      list.innerHTML = '';
-      favorites.forEach(p => {
-        const li = document.createElement('li');
-        li.innerHTML = `<a href="${p.affiliate_link}" target="_blank">${p.name}</a>`;
-        list.appendChild(li);
-      });
-    }
-
-    function toggleDescription(desc, btn) {
-      if (openDescription && openDescription !== desc) {
-        openDescription.style.display = 'none';
-        openDescription.previousElementSibling.textContent = 'Показать описание';
-      }
-      if (desc.style.display === 'block') {
-        desc.style.display = 'none';
-        btn.textContent = 'Показать описание';
-        openDescription = null;
-      } else {
-        desc.style.display = 'block';
-        btn.textContent = 'Скрыть описание';
-        openDescription = desc;
-      }
     }
 
     function renderProducts() {
@@ -254,10 +371,10 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value.toLowerCase();
 
-      let filtered = allProducts.filter(p => p.name.toLowerCase().includes(search) && (!category || p.name.toLowerCase().includes(category)));
-      const pageCount = Math.ceil(filtered.length / itemsPerPage);
+      let filtered = allProducts.filter(p => {
+        return p.name.toLowerCase().includes(search) && (!category || p.name.toLowerCase().includes(category));
+      });
 
-      if (currentPage > pageCount) currentPage = pageCount;
       const start = (currentPage - 1) * itemsPerPage;
       const paginated = filtered.slice(start, start + itemsPerPage);
 
@@ -269,51 +386,131 @@
         card.className = 'card';
 
         const descId = `desc-${product.id}`;
+        if (!favoriteCounts[product.id]) {
+          favoriteCounts[product.id] = 0;
+        }
+
         card.innerHTML = `
+          <button class="favorite-btn" onclick="toggleFavorite(${product.id}, this)">
+            ❤ <span class="favorite-count">${favoriteCounts[product.id]}</span>
+          </button>
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <div class="price">${product.price} ${product.currency}</div>
-          <button class="btn" onclick="toggleDescription(this.nextElementSibling, this)">Показать описание</button>
-          <div class="description" id="${descId}">${product.description || 'Нет описания.'}</div>
-          <a href="${product.affiliate_link}" class="btn" target="_blank">Купить сейчас</a>
-          <button class="btn" onclick='toggleFavorite(${JSON.stringify(product)})'>❤ В избранное</button>
+          <button class="btn" onclick="toggleDescription('${descId}', this)">${translations[currentLanguage].showDescription}</button>
+          <div class="description" id="${descId}">${product.description || translations[currentLanguage].noDescription}</div>
+          <a href="${product.affiliate_link}" class="btn" target="_blank">${translations[currentLanguage].buyNow}</a>
         `;
+
         container.appendChild(card);
       });
 
-      if (currentPage > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = 'Назад';
-        prevBtn.onclick = () => { currentPage--; renderProducts(); };
-        pagination.appendChild(prevBtn);
-      }
-
-      const startPage = Math.max(1, currentPage - 1);
-      const endPage = Math.min(pageCount, startPage + 2);
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      const maxVisiblePages = 3;
+      let startPage = Math.max(1, currentPage - 1);
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
       for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
-        if (i === currentPage) btn.className = 'active';
-        btn.onclick = () => { currentPage = i; renderProducts(); };
+        if (i === currentPage) btn.classList.add('active');
+        btn.onclick = () => {
+          currentPage = i;
+          renderProducts();
+        };
         pagination.appendChild(btn);
       }
 
-      if (currentPage < pageCount) {
+      if (currentPage < totalPages) {
         const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Вперёд';
-        nextBtn.onclick = () => { currentPage++; renderProducts(); };
+        nextBtn.textContent = `${currentPage + 1} ${translations[currentLanguage].forward}`;
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderProducts();
+        };
         pagination.appendChild(nextBtn);
       }
     }
 
-    document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderProducts(); });
-    document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; renderProducts(); });
-    document.getElementById('favoritesBtn').addEventListener('click', () => {
-      const list = document.getElementById('favoritesList');
-      list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    function toggleDescription(id, btn) {
+      const target = document.getElementById(id);
+      if (openDescription && openDescription !== target) {
+        openDescription.style.display = 'none';
+        openDescription.previousElementSibling.textContent = translations[currentLanguage].showDescription;
+      }
+      if (target.style.display === 'block') {
+        target.style.display = 'none';
+        btn.textContent = translations[currentLanguage].showDescription;
+        openDescription = null;
+      } else {
+        target.style.display = 'block';
+        btn.textContent = translations[currentLanguage].hideDescription;
+        openDescription = target;
+      }
+    }
+
+    function toggleFavorite(productId, button) {
+      favoriteCounts[productId] = (favoriteCounts[productId] || 0) + 1;
+      button.querySelector('.favorite-count').textContent = favoriteCounts[productId];
+    }
+
+    function showFavorites() {
+      const favoritesList = document.getElementById('favoritesList');
+      favoritesList.innerHTML = '';
+      const favoriteProducts = allProducts.filter(product => favoriteCounts[product.id] > 0);
+
+      if (favoriteProducts.length > 0) {
+        favoriteProducts.forEach(product => {
+          const item = document.createElement('div');
+          item.innerHTML = `${product.name} (Избранное: ${favoriteCounts[product.id]})`;
+          item.onclick = () => window.open(product.affiliate_link, '_blank');
+          favoritesList.appendChild(item);
+        });
+        favoritesList.classList.add('active');
+        favoritesList.style.right = '1rem';
+        favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
+      } else {
+        favoritesList.innerHTML = translations[currentLanguage].noFavorites;
+        favoritesList.classList.add('active');
+        favoritesList.style.right = '1rem';
+        favoritesList.style.top = `${document.querySelector('.controls').offsetHeight + 10}px`;
+      }
+
+      setTimeout(() => {
+        document.addEventListener('click', hideFavorites);
+      }, 0);
+    }
+
+    function hideFavorites(e) {
+      const favoritesList = document.getElementById('favoritesList');
+      if (!favoritesList.contains(e.target) && e.target.className !== 'favorites-btn') {
+        favoritesList.classList.remove('active');
+        document.removeEventListener('click', hideFavorites);
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+      currentPage = 1;
+      renderProducts();
     });
 
+    document.getElementById('categoryFilter').addEventListener('change', () => {
+      currentPage = 1;
+      renderProducts();
+    });
+
+    document.getElementById('languageSelect').addEventListener('change', (e) => {
+      updateLanguage(e.target.value);
+      // Dịch lại dữ liệu sản phẩm khi thay đổi ngôn ngữ
+      allProducts = allProducts.map(product => ({
+        ...product,
+        name: translateContent(product.name, e.target.value),
+        description: translateContent(product.description, e.target.value)
+      }));
+      renderProducts();
+    });
+
+    updateLanguage('ru');
     loadProducts();
   </script>
 </body>
