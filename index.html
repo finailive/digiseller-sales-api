@@ -45,10 +45,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      word-break: break-word;
     }
     .card img {
-      max-width: 100%;
-      height: 160px;
+      width: 100%;
+      height: auto;
+      max-height: 160px;
       object-fit: contain;
       margin-bottom: 1rem;
     }
@@ -56,6 +58,7 @@
       font-size: 1rem;
       text-align: center;
       min-height: 48px;
+      word-break: break-word;
     }
     .price {
       font-weight: bold;
@@ -66,6 +69,9 @@
       font-size: 0.9rem;
       margin-top: 0.5rem;
       text-align: left;
+      word-break: break-word;
+      max-height: 200px;
+      overflow-y: auto;
     }
     .btn {
       margin-top: 0.5rem;
@@ -104,17 +110,18 @@
       background: #ffc107;
       border: none;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
       font-weight: bold;
       cursor: pointer;
       z-index: 1000;
+      font-size: 1rem;
     }
     #favoritesList {
       position: fixed;
-      top: 150px;
+      top: 160px;
       left: 10px;
-      width: 250px;
+      width: 260px;
       background: #fff;
       border: 1px solid #ccc;
       padding: 1rem;
@@ -174,18 +181,17 @@
         favorites = favorites.filter(p => p.id !== product.id);
       }
       updateFavorites();
+      document.getElementById('favoriteCount').textContent = favorites.length;
     }
 
     function updateFavorites() {
       const list = document.getElementById('favoriteItems');
-      const count = document.getElementById('favoriteCount');
       list.innerHTML = '';
       favorites.forEach(p => {
         const li = document.createElement('li');
         li.innerHTML = `<a href="${p.affiliate_link}" target="_blank">${p.name}</a>`;
         list.appendChild(li);
       });
-      count.textContent = favorites.length;
     }
 
     function renderProducts() {
