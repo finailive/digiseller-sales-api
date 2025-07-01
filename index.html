@@ -5,226 +5,262 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Топ продаж</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 1rem;
-      max-width: 1200px;
-      margin: auto;
-      background-color: #f5f5f5;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 1.5rem;
-    }
+  body {
+    font-family: Arial, sans-serif;
+    padding: 1rem;
+    max-width: 1200px;
+    margin: auto;
+    background-color: #f5f5f5;
+  }
+
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
+    background-color: #e9ecef;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .controls input,
+  .controls select {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    margin-right: 0.75rem; /* Khoảng cách giữa các phần tử */
+    flex: 1; /* Cho phép phần tử mở rộng và chia sẻ không gian */
+    max-width: none; /* Xóa giới hạn max-width */
+    transition: border-color 0.3s ease;
+  }
+
+  .controls input:focus,
+  .controls select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+
+  .language-select {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    margin-right: 0.75rem; /* Khoảng cách nhất quán */
+    transition: border-color 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  .language-select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+
+  .favorites-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .favorites-btn:hover {
+    background: #0056b3;
+  }
+
+  .favorites-list {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 0.5rem;
+    right: 1rem;
+  }
+
+  .favorites-list.active {
+    display: block;
+  }
+
+  .favorites-list div {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .favorites-list div:hover {
+    background-color: #f8f9fa;
+  }
+
+  .favorites-list div:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: 600px) {
     .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #e9ecef;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
-      position: relative;
+      flex-direction: column; /* Chuyển thành cột trên màn hình nhỏ */
+      align-items: stretch; /* Mở rộng phần tử theo chiều rộng */
     }
-    .controls input, .controls select {
-      padding: 0.75rem;
-      font-size: 1rem;
-      border: 1px solid #ced4da;
-      border-radius: 4px;
-      margin-bottom: 0.75rem;
-      width: 100%;
-      max-width: 48%;
-      transition: border-color 0.3s ease;
-    }
-    .controls input:focus, .controls select:focus {
-      border-color: #007bff;
-      outline: none;
-    }
+    .controls input,
+    .controls select,
     .language-select {
-      padding: 0.75rem;
-      font-size: 1rem;
-      border: 1px solid #ced4da;
-      border-radius: 4px;
-      background-color: white;
-      cursor: pointer;
-      margin-right: 1rem;
-      transition: border-color 0.3s ease;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-    }
-    .language-select:focus {
-      border-color: #007bff;
-      outline: none;
+      margin-right: 0; /* Xóa margin-right */
+      margin-bottom: 0.75rem; /* Thêm margin-bottom cho khoảng cách */
+      width: 100%; /* Chiều rộng 100% trên màn hình nhỏ */
     }
     .favorites-btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-      margin-left: auto;
-    }
-    .favorites-btn:hover {
-      background: #0056b3;
+      margin-top: 0.75rem;
+      width: 100%;
+      margin-left: 0;
     }
     .favorites-list {
-      display: none;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 1rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 1000;
-      margin-top: 0.5rem;
-      right: 1rem;
-    }
-    .favorites-list.active {
-      display: block;
-    }
-    .favorites-list div {
-      padding: 0.75rem;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .favorites-list div:hover {
-      background-color: #f8f9fa;
-    }
-    .favorites-list div:last-child {
-      border-bottom: none;
-    }
-    @media (max-width: 600px) {
-      .controls input, .controls select, .language-select {
-        max-width: 100%;
-        margin-right: 0;
-      }
-      .favorites-btn {
-        margin-top: 0.75rem;
-        width: 100%;
-        margin-left: 0;
-      }
-      .favorites-list {
-        right: 0;
-        width: 100%;
-      }
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-    .card {
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      background-color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      word-break: break-word;
-      overflow: hidden;
-      position: relative;
-      transition: transform 0.2s ease;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .card img {
+      right: 0;
       width: 100%;
-      height: auto;
-      max-height: 160px;
-      object-fit: contain;
-      margin-bottom: 1rem;
     }
-    .card h3 {
-      font-size: 1rem;
-      text-align: center;
-      min-height: 48px;
-      color: #333;
-    }
-    .price {
-      font-weight: bold;
-      color: #2d2d2d;
-      margin-top: 0.5rem;
-    }
-    .description {
-      display: none;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      text-align: left;
-      max-height: 200px;
-      overflow-y: auto;
-      color: #666;
-    }
-    .btn {
-      margin-top: 0.75rem;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background-color 0.3s ease;
-    }
-    .btn:hover {
-      background: #0056b3;
-    }
-    .favorite-btn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      color: #ff4444;
-      padding: 0.3rem 0.5rem;
-      border-radius: 50%;
-      transition: background-color 0.3s ease;
-    }
-    .favorite-btn:hover {
-      background: rgba(255, 68, 68, 0.2);
-    }
-    .favorite-count {
-      font-size: 0.9rem;
-      color: #333;
-    }
-    .pagination {
-      display: flex;
-      justify-content: center;
-      margin-top: 2rem;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .pagination button {
-      padding: 0.5rem 1rem;
-      border: 1px solid #ccc;
-      background: #f8f8f8;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-    }
-    .pagination button:hover, .pagination button.active {
-      background: #007bff;
-      color: white;
-    }
-  </style>
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    word-break: break-word;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card img {
+    width: 100%;
+    height: auto;
+    max-height: 160px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+
+  .card h3 {
+    font-size: 1rem;
+    text-align: center;
+    min-height: 48px;
+    color: #333;
+  }
+
+  .price {
+    font-weight: bold;
+    color: #2d2d2d;
+    margin-top: 0.5rem;
+  }
+
+  .description {
+    display: none;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    color: #666;
+  }
+
+  .btn {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn:hover {
+    background: #0056b3;
+  }
+
+  .favorite-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #ff4444;
+    padding: 0.3rem 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+  }
+
+  .favorite-btn:hover {
+    background: rgba(255, 68, 68, 0.2);
+  }
+
+  .favorite-count {
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    background: #f8f8f8;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+
+  .pagination button:hover,
+  .pagination button.active {
+    background: #007bff;
+    color: white;
+  }
+</style>
 </head>
 <body>
   <h1>🔥 Топ продаж</h1>
